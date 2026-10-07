@@ -1,6 +1,8 @@
 78098b89c88a74ebe8c20117b8754620
-::res://::1791390839
+::res://::1791394153
 icon.svg::CompressedTexture2D::8595452644465423135::1782667726::1782667732::1::::<><><>0<>0<>c2e1ca720d67c3a2ae041be4a73927aa<>res://.godot/imported/icon.svg-218a8f2b3041327d8a5756f3a245f83b.ctex::
+README.md::TextFile::-1::1791393999::0::1::::<><><>0<>0<><>::
+screenshot.png::CompressedTexture2D::8297434061608926095::1791394154::1791394154::1::::<><><>0<>0<>f296d1fb6f031153e3cedd4d2dbe1e4e<>res://.godot/imported/screenshot.png-024a21af5d37bf0f0dd0e2bccdd149d0.ctex::
 ::res://fonts/::1784284126
 ::res://fonts/liberation_sans/::1785671209
 LiberationMono-Bold.ttf::FontFile::7385939724163565560::1784284126::1785671209::1::::<><><>0<>0<>fdbbe0f86658b84fc0d213f8fdc6f1b9<>res://.godot/imported/LiberationMono-Bold.ttf-ef6edbab7cbae300c80fabedeaa660ce.fontdata::
@@ -30,12 +32,12 @@ cell.tscn::PackedScene::3046978188800751733::1782686079::0::1::::<><><>0<>0<><>:
 ::res://scenes/screens/::1790785341
 petri.gd::GDScript::4708781825323664196::1790785341::0::1::::Petri<>Screen<><>0<>0<><>::
 petri.tscn::PackedScene::2108190269324356374::1784293257::0::1::::<><><>0<>0<><>::uid://b8c77ix05pujk::::res://scenes/screens/petri.gd<>uid://bjn8jyfigfsoj::::res://scenes/objects/cell.tscn
-::res://scenes/ui/::1791133535
+::res://scenes/ui/::1791393999
 cell_data.gd::GDScript::8626205832176213865::1785675714::0::1::::<>MarginContainer<><>0<>0<><>::
 cell_data.tscn::PackedScene::5235909564065896373::1786392135::0::1::::<><><>0<>0<><>::uid://ddh2l3p8vuiw3::::res://fonts/liberation_sans/LiberationMono-Bold.ttf<>uid://du5ul5kvrt0yn::::res://scenes/ui/cell_data.gd
 petri_overlay.tscn::PackedScene::6864594082870459951::1785688659::0::1::::<><><>0<>0<><>::uid://cgukwvmsxd5dp::::res://scenes/ui/cell_data.tscn<>uid://bqu2vc53x2c5o::::res://scenes/ui/substance_data.tscn<>uid://cw06ok3mgcgcx::::res://scenes/ui/substance_data.gd
 substance_data.gd::GDScript::6370513168206191715::1786474681::0::1::::<>MarginContainer<><>0<>0<><>::
-substance_data.tscn::PackedScene::3552406750154336986::1791133535::0::1::::<><><>0<>0<><>::
+substance_data.tscn::PackedScene::3552406750154336986::1791393999::0::1::::<><><>0<>0<><>::
 ::res://scripts/::1784213226
 ::res://scripts/cellular/::1791133535
 chemistry.gd::GDScript::2197326444180276684::1791041145::0::1::::Chemistry<>RefCounted<><>0<>0<><>::
@@ -64,5 +66,5 @@ selected.png::CompressedTexture2D::8615420843198166005::1784285359::1784285359::
 tab_disabled.png::CompressedTexture2D::2650013533172077804::1784283953::1784283953::1::::<><><>0<>0<>a41a126e78dcaa94d79879218e93cc50<>res://.godot/imported/tab_disabled.png-99bfb6a631a891febba2ac31fd6f68fd.ctex::
 tab_selected.png::CompressedTexture2D::6004167633290176439::1784282517::1784282552::1::::<><><>0<>0<>f7ca543dcaf7989e00750544ce481c52<>res://.godot/imported/tab_selected.png-b0f78f7609ea749bf7381f6fa4d5eb6c.ctex::
 tab_unselected.png::CompressedTexture2D::6637008863079513185::1784282541::1784282557::1::::<><><>0<>0<>133e426b9d3933eca2a92c890e3b789d<>res://.godot/imported/tab_unselected.png-62aac8b563b96f14c96467ecf456662a.ctex::
-::res://themes/::1791120979
-generic.tres::Theme::8460461614118190352::1791120979::0::1::::<><><>0<>0<><>::uid://upha8yrkkqcm::::res://sprites/ui/generic/panel.png<>uid://db7okjwcgpvo5::::res://sprites/ui/generic/panel_container.png<>uid://crsp073qmmwjn::::res://sprites/ui/tab_container/tab_selected.png<>uid://du0mytjpirt5f::::res://sprites/ui/item_container/selected.png<>uid://bd0xlodec2kh5::::res://sprites/ui/tab_container/tab_disabled.png<>uid://c1tativxpj3p2::::res://sprites/ui/tab_container/tab_unselected.png
+::res://themes/::1791393999
+generic.tres::Theme::8460461614118190352::1791393999::0::1::::<><><>0<>0<><>::uid://upha8yrkkqcm::::res://sprites/ui/generic/panel.png<>uid://db7okjwcgpvo5::::res://sprites/ui/generic/panel_container.png<>uid://crsp073qmmwjn::::res://sprites/ui/tab_container/tab_selected.png<>uid://du0mytjpirt5f::::res://sprites/ui/item_container/selected.png<>uid://bd0xlodec2kh5::::res://sprites/ui/tab_container/tab_disabled.png<>uid://c1tativxpj3p2::::res://sprites/ui/tab_container/tab_unselected.png
