@@ -1,0 +1,110 @@
+[gd_scene format=3 uid="uid://cgukwvmsxd5dp"]
+
+[ext_resource type="FontFile" uid="uid://ddh2l3p8vuiw3" path="res://fonts/liberation_sans/LiberationMono-Bold.ttf" id="1_dp0by"]
+[ext_resource type="Script" uid="uid://du5ul5kvrt0yn" path="res://scenes/ui/cell_data.gd" id="1_q14ij"]
+
+[node name="CellData" type="MarginContainer" unique_id=1600526757]
+anchors_preset = -1
+anchor_top = 0.656
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_q14ij")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1750599094]
+layout_mode = 2
+theme_override_constants/separation = -2
+
+[node name="Presets" type="MarginContainer" parent="HBoxContainer" unique_id=1520850922]
+layout_mode = 2
+
+[node name="P" type="Panel" parent="HBoxContainer/Presets" unique_id=1116912469]
+layout_mode = 2
+
+[node name="M" type="MarginContainer" parent="HBoxContainer/Presets" unique_id=784895258]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="V" type="VBoxContainer" parent="HBoxContainer/Presets/M" unique_id=834233810]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/Presets/M/V" unique_id=1477819678]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_dp0by")
+text = "Presets"
+horizontal_alignment = 1
+
+[node name="ItemList" type="ItemList" parent="HBoxContainer/Presets/M/V" unique_id=1285085153]
+layout_mode = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+auto_width = true
+item_count = 9
+item_0/text = "asdasdasd"
+item_1/text = "aasdasd"
+item_2/text = "a"
+item_3/text = "a"
+item_4/text = "a"
+item_5/text = "a"
+item_6/text = "a"
+item_7/text = "a"
+item_8/text = "a"
+
+[node name="TabBar" type="TabContainer" parent="HBoxContainer" unique_id=1277396910]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 8
+mouse_filter = 0
+current_tab = 1
+drag_to_rearrange_enabled = true
+deselect_enabled = true
+
+[node name="Stats" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1220988723]
+visible = false
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+metadata/_tab_index = 0
+
+[node name="GridContainer" type="GridContainer" parent="HBoxContainer/TabBar/Stats" unique_id=293061757]
+layout_mode = 2
+
+[node name="CellName" type="HBoxContainer" parent="HBoxContainer/TabBar/Stats/GridContainer" unique_id=1451733788]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/TabBar/Stats/GridContainer/CellName" unique_id=1899547561]
+layout_mode = 2
+text = "Cell Name"
+
+[node name="CellName" type="LineEdit" parent="HBoxContainer/TabBar/Stats/GridContainer/CellName" unique_id=1854341765]
+layout_mode = 2
+expand_to_text_length = true
+
+[node name="Cytosol" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1289957544]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+metadata/_tab_index = 1
+
+[node name="ItemList" type="ItemList" parent="HBoxContainer/TabBar/Cytosol" unique_id=121196457]
+layout_mode = 2
+select_mode = 2
+
+[node name="Timer" type="Timer" parent="." unique_id=1975659702]
+wait_time = 0.33
+autostart = true
+
+[connection signal="tab_changed" from="HBoxContainer/TabBar" to="." method="_on_tab_bar_tab_changed"]
+[connection signal="text_submitted" from="HBoxContainer/TabBar/Stats/GridContainer/CellName/CellName" to="." method="_on_cell_name_text_submitted"]
+[connection signal="item_clicked" from="HBoxContainer/TabBar/Cytosol/ItemList" to="." method="_on_cytosol_item_selected"]
+[connection signal="timeout" from="Timer" to="." method="_step"]

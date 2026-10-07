@@ -1,0 +1,10 @@
+[gd_scene format=3 uid="uid://bjn8jyfigfsoj"]
+
+[ext_resource type="Texture2D" uid="uid://c5bbwq04eai42" path="res://sprites/hexagon.png" id="1_q5eot"]
+[ext_resource type="Script" uid="uid://dhvhcr6i128m7" path="res://scenes/objects/cell.gd" id="1_wxn0j"]
+
+[node name="Cell" type="Node2D" unique_id=1810337563]
+script = ExtResource("1_wxn0j")
+
+[node name="Cytoplasm" type="Sprite2D" parent="." unique_id=909000983]
+texture = ExtResource("1_q5eot")

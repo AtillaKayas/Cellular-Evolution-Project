@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://c42i4ka6kyvp4"]
+
+[ext_resource type="PackedScene" uid="uid://cgukwvmsxd5dp" path="res://scenes/ui/cell_data.tscn" id="1_bjwhp"]
+[ext_resource type="PackedScene" uid="uid://bqu2vc53x2c5o" path="res://scenes/ui/substance_data.tscn" id="2_0ggmr"]
+[ext_resource type="Script" uid="uid://cw06ok3mgcgcx" path="res://scenes/ui/substance_data.gd" id="2_8j37v"]
+
+[node name="Petri Overlay" type="Control" unique_id=1334758238]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SubstanceData" parent="." unique_id=870577978 instance=ExtResource("2_0ggmr")]
+layout_mode = 1
+offset_left = -142.0
+offset_bottom = 55.0
+script = ExtResource("2_8j37v")
+
+[node name="CellData" parent="." unique_id=1600526757 instance=ExtResource("1_bjwhp")]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+offset_top = -193.0
+grow_vertical = 0
+
+[connection signal="substance_data_requested" from="CellData" to="SubstanceData" method="_on_substance_data_requested"]
+[connection signal="substance_data_unselected" from="CellData" to="SubstanceData" method="_substance_data_unselected"]
+[connection signal="tab_changed" from="CellData" to="SubstanceData" method="_on_cell_data_tab_changed"]

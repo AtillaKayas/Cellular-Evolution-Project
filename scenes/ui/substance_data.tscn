@@ -1,0 +1,52 @@
+[gd_scene format=3 uid="uid://bqu2vc53x2c5o"]
+
+[node name="SubstanceData" type="MarginContainer" unique_id=870577978]
+anchors_preset = -1
+anchor_left = 0.824
+anchor_right = 1.0
+anchor_bottom = 0.353
+grow_horizontal = 0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="Panel" type="Panel" parent="." unique_id=603480327]
+layout_mode = 2
+
+[node name="M" type="MarginContainer" parent="." unique_id=73832620]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="V" type="VBoxContainer" parent="M" unique_id=578101680]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="Header" type="Label" parent="M/V" unique_id=2116297174]
+layout_mode = 2
+text = "Substance Data"
+horizontal_alignment = 1
+
+[node name="HSeparator" type="HSeparator" parent="M/V" unique_id=816083755]
+layout_mode = 2
+
+[node name="Spacer2" type="Control" parent="M/V" unique_id=1038633914]
+custom_minimum_size = Vector2(0, 4)
+layout_mode = 2
+
+[node name="M" type="MarginContainer" parent="M/V" unique_id=244669099]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PC" type="PanelContainer" parent="M/V/M" unique_id=864890798]
+layout_mode = 2
+
+[node name="RTL" type="RichTextLabel" parent="M/V/M/PC" unique_id=1051055281]
+layout_mode = 2
+focus_mode = 2
+selection_enabled = true
