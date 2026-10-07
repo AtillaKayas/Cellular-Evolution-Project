@@ -5,7 +5,7 @@
 
 ## Status
 
-**Work in progress.** The genome, peptide, chemistry, and membrane transport systems are implemented. The starter cell does not yet reach equilibrium, even if I match Sodium/Potassium pump to passive flux Chloride leaks out. I need a proper way to deal with Chloride.
+**Work in progress.** The genome, peptide, chemistry, and membrane transport systems are implemented. The starter cell does not yet reach equilibrium, even if I match Sodium/Potassium pump to passive flux Chloride leaks out. I need a proper way to deal with Chloride. Since the starter cell is currently unable to reach equilibrium, cell divisions and therefore the evolution part of the project is not active yet.
 
 ## How to run
 
@@ -55,9 +55,9 @@ starter cell I made is unable to reach equilibrium despite weeks of work put.
 
 ## Known issues
 - The starter cell does not reach equilibrium (see Status).
-- UI is pretty limited
+- The UI is pretty limited.
 - There are still many debug lines existing in the code and it prints many unrelated stuff.
-- The cell can't even replicate yet and proper mutations are not implemented which is due to no stable condition for cells existing yet.
+- The starter cell doesn't replicate yet.
 
 ## License
 MIT. See [LICENSE](LICENSE).
