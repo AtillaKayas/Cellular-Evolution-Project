@@ -10,7 +10,7 @@ const leak_permeation_speed : float = 3e-3
 const facilitated_permeation_speed : float = 1e-4
 var _channel_permeabilities : Dictionary
 
-const pump_speed : float = 0.005#0.5
+const carrier_speed : float = 0.00005
 var membrane_potential : float = 0.0
 var _pumped_substances : Array #Pump1Ion1, Pump1Ion2, Pump1Speed, Pump2Ion1, Pump2Ion2, Pump2Speed...
 var _pump_flux : Dictionary[Substance, float]
@@ -47,14 +47,10 @@ func get_permeability(subs : Substance) -> float:
 	return (leak + facilitated) * permeability_rate
 
 func tick():
-	_pump_flux.clear()
-	_pump_total_charge_flux = 0
-	var concentration_difference := Fluid.concentration_gradient(_outside, _inside)
-	_pump(concentration_difference)
-	
+
 	_carrier_flux.clear()
 	_pump_total_charge_flux = 0
-	concentration_difference = Fluid.concentration_gradient(_outside, _inside)
+	var concentration_difference := Fluid.concentration_gradient(_outside, _inside)
 	_carry(concentration_difference)
 	
 	var previous_membrane_potential = membrane_potential
@@ -117,42 +113,6 @@ func _permeate(previous_membrane_potential : float, concentration_difference : D
 		if inside_remaining < 0.0:
 			_outside.add_substance(subs, inside_remaining)
 
-func _pump(concentration_difference : Dictionary[Substance, Array]):
-	for n in _pumped_substances.size()/5:
-		var maximum_rate = _pumped_substances[5*n]
-		var ion1 =  _pumped_substances[5*n+1]
-		var Kion1 =  _pumped_substances[5*n+2]
-		var ion2 =  _pumped_substances[5*n+3]
-		var Kion2 =  _pumped_substances[5*n+4]
-		const ion1_direction = 2
-		const ion2_direction = -3
-		var charge_moved = -(ion1_direction + ion2_direction)
-		
-		#first ion we try to move into the cell, second ion we try to move out of the cell
-		#therefore, first ion uses outside concentration while second uses inside concentration
-		#(think this equation like it uses the smaller of the concentrations)
-		
-		var conc1 = concentration_difference[ion1]
-		var C_ion1_out = conc1[0]
-		
-		var conc2 = concentration_difference[ion2]
-		var C_ion2_in = conc2[1]
-		
-		var ion1_activation = C_ion1_out/(Kion1+C_ion1_out)
-		var ion2_activation = C_ion2_in/(Kion2+C_ion2_in)
-		
-		var ion_activation = ion1_activation*ion2_activation
-		var boltzman = exp(charge_moved*membrane_potential/Units.RT_F)
-		
-		var reaction_rate = pump_speed*maximum_rate*ion_activation*boltzman
-		
-		var ion1_flux = reaction_rate*2
-		var ion2_flux = -reaction_rate*3
-		
-		_pump_flux[ion1] = ion1_flux
-		_pump_flux[ion2] = ion2_flux
-		_pump_total_charge_flux -= reaction_rate
-
 func _carry(concentration_difference : Dictionary[Substance, Array]):
 	for c in _carriers:
 		var maximum_rate = c[0]
@@ -185,7 +145,7 @@ func _carry(concentration_difference : Dictionary[Substance, Array]):
 		var net_energy = energy_cost-atp_usage*Eatp # volts, negative = favorable
 		var driving = maxf(1.0 - exp(minf(net_energy / Units.RT_F, 20.0)), -1.0)
 		
-		var reaction_rate = pump_speed*maximum_rate*total_activation*driving
+		var reaction_rate = carrier_speed*maximum_rate*total_activation*driving
 		_pump_total_charge_flux += charge_moved*reaction_rate
 		
 		#do actual carrying now
@@ -195,7 +155,6 @@ func _carry(concentration_difference : Dictionary[Substance, Array]):
 			var _K : float = subs_data[2] #half_saturation_constant
 			var existing_flux = _carrier_flux.get_or_add(subs, 0.0)
 			_carrier_flux[subs] = existing_flux + reaction_rate*stoichiometry
-		print(_carrier_flux)
 
 func clear():
 	_pumped_substances.clear()

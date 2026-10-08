@@ -128,13 +128,13 @@ func generate_basic():
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABAAK") + Nuclein.TERMINATOR #Pot
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AJCABNAC") + Nuclein.TERMINATOR #Chl
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABIAN") + Nuclein.TERMINATOR #Sod
-	#main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFIBMBFKFNK") + Nuclein.TERMINATOR 
+
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABMFKLKNAE") + Nuclein.TERMINATOR 
-	#main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABOFKHKCHE") + Nuclein.TERMINATOR 
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABAFKHKCHE") + Nuclein.TERMINATOR 
 	main += _generate_random_protein_bulk()
 
 	_cytosol.fill(fill)
-	var plasmid : Dictionary[Nuclein, int] = {Nuclein.new(main) : 1}
+	var plasmid : Dictionary[Nuclein, int] = {Nuclein.new(main, "main") : 1}
 	_genome = Genome.new(plasmid)
 	
 	#fill = {

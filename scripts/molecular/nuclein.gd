@@ -8,13 +8,15 @@ static var _intron_regex : RegEx
 
 var sequence : String
 var introns : Dictionary[String, float]
+var nick : String = ""
 
 static func _static_init() -> void:
 	_intron_regex = RegEx.new()
 	_intron_regex.compile(PROMOTER + "(.*?)" + TERMINATOR)
 
-func _init(seq : String) -> void:
+func _init(seq : String, nick : String = "") -> void:
 	sequence = seq
+	self.nick = nick
 	
 	
 	#store all valid introns (peptide-making units)

@@ -3,7 +3,7 @@ class_name Operations
 #the reason i made this a seperate class is to not overcrowd Chemistry.
 #things the Operations can do are highly correlated with stuff defined in Peptides
 
-enum {PRINT, ION_PUMP, TRANSPORTER}
+enum {PRINT, TRANSPORTER}
 
 var _data : Array
 var _cell : Cell
@@ -33,21 +33,11 @@ func tick(cytosol : Fluid, membrane : Membrane):
 			args = op[1]
 		match op[0]:
 			PRINT: _print(args)
-			ION_PUMP: _ion_pump(cytosol, membrane, args)
 			TRANSPORTER: _transporter(args)
 			_: _dummy(args)
 
 func _print(args : Array):
 	prints(args)
-
-func _ion_pump(_cytosol : Fluid, membrane : Membrane, args : Array):
-	var maximum_rate = args[0][0]
-	var ion1 = args[0][1]
-	var Kion1 = args[0][2]
-	var ion2 = args[0][3]
-	var Kion2 = args[0][4]
-	
-	membrane.add_pump(maximum_rate, ion1, Kion1, ion2, Kion2)
 
 func _transporter(args : Array):
 	var maximum_rate = args[0][0]

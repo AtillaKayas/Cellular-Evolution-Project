@@ -5,7 +5,6 @@ const ACT = {
 	RNA_POLYMERASE = "rPOLY",
 	PRINT_NAME = "PRINT",
 	MEMBRANE_TAG = "MEMB",
-	ION_PUMP = "iPUMP",
 	TRANSPORTER = "TRANS",
 	DEFINE = "DEF"
 }
@@ -15,7 +14,6 @@ static var DOMAIN = {
 	ACT.RNA_POLYMERASE : ["ICLON", _domain_rna_polymerase, false],
 	ACT.PRINT_NAME : ["PLEAD", _domain_dummy, true],
 	ACT.MEMBRANE_TAG : ["MEMB", _domain_membrane_tag, true],
-	ACT.ION_PUMP : ["IBMB", _domain_ion_pump, false],
 	ACT.TRANSPORTER : ["CAB", _domain_transporter, false],
 	ACT.DEFINE : ["DEF", _domain_define, false]
 }
@@ -53,7 +51,6 @@ func activities(chemistry : Chemistry, amount : float) -> bool:
 		match activity_name:
 			ACT.RNA_POLYMERASE: _activity_rna_polymerase(chemistry, amount, params)
 			ACT.PRINT_NAME: _activity_print_name(chemistry)
-			ACT.ION_PUMP: _activity_ion_pump(chemistry, amount, params)
 			ACT.TRANSPORTER: _activity_transporter(chemistry, amount, params)
 	return true
 
@@ -110,28 +107,6 @@ static func _domain_rna_polymerase(_peptide, _sequence, i) -> Array:
 		return []
 	else:
 		return [factor, speed]
-
-static func _domain_ion_pump(_peptide, _sequence : String, i):
-	#exchanges a substance with an ion. substance pattern is used to define what is passed.
-	var ion1 : Substance
-	var Kion1 : float
-	var maximum_rate : float
-	var ion2 : Substance
-	var Kion2 : float
-	if i+5 >= _sequence.length():
-		return []
-	
-	maximum_rate = pow(1.2, (_sequence.unicode_at(i+1)-58))
-	
-	ion1 = Substance.fetch_from_pattern(_sequence[i+2] + "ION")
-	Kion1 = Units.capital_to_integer(_sequence.unicode_at(i+3))
-	ion2 = Substance.fetch_from_pattern(_sequence[i+4] + "ION")
-	Kion2 = Units.capital_to_integer(_sequence.unicode_at(i+5))
-	
-	if ion2 == null or ion1 == null:
-		return []
-	else:
-		return [maximum_rate, ion1, Kion1, ion2, Kion2]
 
 static func _domain_define(peptide, _sequence : String, i):
 	#Use this to define a substance pattern into a single character
@@ -211,15 +186,6 @@ func _activity_rna_polymerase(chemistry : Chemistry, amount : float, params : Ar
 	var binding_site = params[0]
 	var speed = params[1]
 	chemistry.activate_dna_binding_site(binding_site, speed*amount)
-
-func _activity_ion_pump(chemistry : Chemistry, amount : float, params : Array):
-	is_membrane_bound = true
-	
-	#we divide speed by this number because this is the standard expression
-	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
-	var maximum_rate = params[0]*amount/3.59381366380463
-	params[0] = maximum_rate
-	chemistry.new_operation(Operations.ION_PUMP, params)
 
 func _activity_transporter(chemistry : Chemistry, amount : float, params : Array):
 	is_membrane_bound = true

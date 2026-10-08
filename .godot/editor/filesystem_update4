@@ -1,3 +1,7 @@
+res://scenes/objects/cell.gd
+res://scripts/cellular/membrane.gd
+res://scripts/molecular/nuclein.gd
 res://scenes/ui/substance_data.tscn
 res://themes/generic.tres
-res://README.md
+res://scripts/generic/operations.gd
+res://scripts/molecular/peptide.gd
