@@ -5,7 +5,7 @@
 
 ## Status
 
-**Work in progress.** The genome, peptide, chemistry, and membrane transport systems are implemented. The starter cell does not yet reach equilibrium, even if I match Sodium/Potassium pump to passive flux Chloride leaks out. I need a proper way to deal with Chloride. Since the starter cell is currently unable to reach equilibrium, cell divisions and therefore the evolution part of the project is not active yet.
+**Work in progress.** The genome, peptide, chemistry, membrane transport and glycolysis systems are implemented. The starter cell reaches membrane equilibrium however its ATP becomes quickly depleted. No cell division code is written as of yet due to this problem. 
 
 ## How to run
 

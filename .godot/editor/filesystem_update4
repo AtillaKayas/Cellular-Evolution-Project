@@ -4,3 +4,4 @@ res://scripts/molecular/substance.gd
 res://scenes/objects/cell.tscn
 res://themes/generic.tres
 res://scenes/screens/petri.gd
+res://README.md
