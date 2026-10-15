@@ -6,7 +6,10 @@ const ACT = {
 	PRINT_NAME = "PRINT",
 	MEMBRANE_TAG = "MEMB",
 	TRANSPORTER = "TRANS",
-	DEFINE = "DEF"
+	DEFINE = "DEF",
+	COMBINE = "ADD",
+	GLYCOLYSIS = "GLYSIS",
+	KINASE = "KNASE"
 }
 
 static var DOMAIN = {
@@ -15,7 +18,10 @@ static var DOMAIN = {
 	ACT.PRINT_NAME : ["PLEAD", _domain_dummy, true],
 	ACT.MEMBRANE_TAG : ["MEMB", _domain_membrane_tag, true],
 	ACT.TRANSPORTER : ["CAB", _domain_transporter, false],
-	ACT.DEFINE : ["DEF", _domain_define, false]
+	ACT.DEFINE : ["DEF", _domain_define, false],
+	ACT.COMBINE : ["ADD", _domain_combine, false],
+	ACT.GLYCOLYSIS : ["GLIE", _domain_gylcolysis, false],
+	ACT.KINASE : ["KINAE", _domain_kinase, false]
 }
 
 
@@ -52,6 +58,9 @@ func activities(chemistry : Chemistry, amount : float) -> bool:
 			ACT.RNA_POLYMERASE: _activity_rna_polymerase(chemistry, amount, params)
 			ACT.PRINT_NAME: _activity_print_name(chemistry)
 			ACT.TRANSPORTER: _activity_transporter(chemistry, amount, params)
+			ACT.COMBINE: _activity_combine(chemistry, amount, params)
+			ACT.GLYCOLYSIS: _activity_glycolysis(chemistry, amount, params)
+			ACT.KINASE: _activity_kinase(chemistry, amount, params)
 	return true
 
 func find_bottleneck(subs : Dictionary[Substance, float]) -> Array:
@@ -133,11 +142,11 @@ static func _domain_define(peptide, _sequence : String, i):
 	return []
 
 static func _domain_transporter(_peptide, _sequence : String, i):
-	#i+1: Is Pump? (true if O)
-	#i+2: Maximum Rate
+	#i+1: Maximum Rate
+	#i+2: ATP Usage --nonexistent in a regular _domain_combine as it is calculated there
 	#i+3: Substance1
 	#i+4: Substance1 Direction and amount
-	#i+5: Substance1 Half Saturation Constant
+	#i+5: Substance1 Half Saturation Constant (Km)
 	#i+6: Substance2
 	#...
 	
@@ -158,6 +167,7 @@ static func _domain_transporter(_peptide, _sequence : String, i):
 		var m = 3*n
 		var substance = _peptide._fetch_substance(port_data[m])
 		
+		#different from a standard _domain_define, we don't need high numbers.
 		#from -3 to +3, skips 0
 		var r = floori(Units.capital_to_integer(port_data.unicode_at(m+1))/2.5)
 		var direction = r - 3 + floori(r/3)
@@ -168,16 +178,165 @@ static func _domain_transporter(_peptide, _sequence : String, i):
 		if substance == null: continue
 		ports.append([substance, direction, half_saturation_constant])
 	
+	#this part is different from _domain_combine. you can define channels without all that jizz.
 	if ports.is_empty() and atp_usage == 0:
 		if division*3 != port_data.length():
 			#this means that the transporter is actually just a channel
-			#channels do not require affinities or directions, therefore
+			#channels do not require affinities or directions, therefore we can append it this way
 			ports.append([_peptide._fetch_substance(port_data[division*3])])
 		else:
 			#means there were no viable ports and we don't have anything to work with
 			#stuck to the end
 			return []
 	return [maximum_rate, atp_usage, ports]
+
+static func _domain_combine(_peptide, _sequence : String, i):
+	#i+1: Maximum Rate
+	#i+2: Product Half Saturation Constant
+	#i+3: Reactant1
+	#i+4: Reactant1 amount
+	#i+5: Reactant1 Half Saturation Constant (Km)
+	#i+6: Reactant2
+	#i+7: Reactant2 amount
+	#...
+	
+	if _sequence.length()-7 <= i:
+		return []
+	
+	var x : float = Units.capital_to_integer(_sequence.unicode_at(i+1))
+	var normalization = pow(1.59, x)
+	var maximum_rate = normalization
+	
+	var product_half_saturation_constant = \
+		Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+2)), 0, 14, 0.2, 80)
+	
+	#var atp_usage : int = Units.capital_to_integer(_sequence.unicode_at(i+2))
+	
+	var product_name := ""
+	var total_bond_count : int = -1
+	
+	#after ADDAA, every three letters of the rest of the peptide is a reactant
+	var reactant_data = _sequence.substr(i+3)
+	var reactants : Dictionary[Substance, Array]
+	var division = reactant_data.length()/3
+	for n in division:
+		var m = 3*n
+		var substance = _peptide._fetch_substance(reactant_data[m])
+		
+		var half_saturation_constant = \
+		Units.log_map(Units.capital_to_integer(reactant_data.unicode_at(m+2)), 0, 14, 0.2, 80)
+		
+		if substance == null: continue
+		var amount = Units.capital_to_integer(reactant_data.unicode_at(m+1))+1
+		_add_reaction_term(reactants, substance, amount, half_saturation_constant)
+		
+		for a in amount:
+			product_name += substance.name
+		total_bond_count += amount
+		
+	
+	if !(reactants.size() > 1 or (reactants.size() == 1 && total_bond_count > 0)):
+		return []
+	
+	var product = Substance.fetch(product_name)
+	if product == null:
+		return []
+	
+	var products : Dictionary[Substance, Array]
+	_add_reaction_term(products, product, 1, product_half_saturation_constant)
+	
+	var delta_g = _calculate_delta_g(products, reactants)
+	
+	var water_formation_energy = total_bond_count*(-237) #water formation energy is around -237
+	
+	var atp_usage := 0
+	if delta_g > 0:
+		atp_usage = ceili(delta_g/Units.atp_energy) #intrinsic to ATP hydrolysis
+	
+	var dG0_total = delta_g + water_formation_energy + atp_usage * (-30.5)
+	
+	if atp_usage != 0:
+		_add_reaction_term(reactants, Substance.fetch("appp"), atp_usage, 0.5)
+		_add_reaction_term(products, Substance.fetch("app"), atp_usage, 0.5)
+		_add_reaction_term(products, Substance.fetch("p"), atp_usage, 1.0)
+	
+	_remove_intermediary(products, reactants)
+	
+	return [maximum_rate, reactants, products, dG0_total]
+
+static func _domain_gylcolysis(_peptide, _sequence : String, i):
+	#i+1: Maximum Rate
+	
+	if _sequence.length()-1 <= i:
+		return []
+	
+	var x : float = Units.capital_to_integer(_sequence.unicode_at(i+1))
+	var normalization = pow(1.59, x)
+	var maximum_rate = normalization
+	
+	var g6p = Substance.fetch("gp")
+	var pyruvate = Substance.fetch("h")
+	var atp = Substance.fetch("appp")
+	var adp = Substance.fetch("app")
+	var p = Substance.fetch("p")
+	
+	var reactants : Dictionary
+	var products : Dictionary
+	
+	_add_reaction_term(reactants, g6p, 1, 0.5)
+	_add_reaction_term(products, pyruvate, 2, 0.5)
+	
+	var delta_g = _calculate_delta_g(products, reactants)
+	
+	delta_g += -258.88 #include 2NAD -> 2NADH
+	
+	_add_reaction_term(reactants, adp, 3, 0.5)
+	_add_reaction_term(reactants, p, 3, 0.5)
+	_add_reaction_term(products, atp, 3, 0.5)
+	
+	const atp_generated = 3 #this is how it is done in a real cell
+	var dG0_total = delta_g + atp_generated * (30.5)
+	
+	return [maximum_rate, reactants, products, dG0_total]
+
+static func _domain_kinase(_peptide, _sequence : String, i):
+	#i+1: Maximum Rate
+	#i+2: Substance
+	#i+3: Half-Saturation Constant
+	
+	if _sequence.length()-2 <= i:
+		return []
+	
+	var x : float = Units.capital_to_integer(_sequence.unicode_at(i+1))
+	var normalization = pow(1.59, x)
+	var maximum_rate = normalization
+	
+	var reactant = _peptide._fetch_substance(_sequence[i+2])
+	if reactant == null: return []
+	
+	var product_name : String = reactant.name + "p"
+	var product = Substance.fetch(product_name)
+	if product == null: return []
+	
+	var half_saturation_constant = \
+	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+1)), 0, 14, 0.2, 80)
+
+	var reactants : Dictionary
+	var products : Dictionary
+	var p = Substance.fetch("p")
+	
+	_add_reaction_term(reactants, reactant, 1, half_saturation_constant)
+	_add_reaction_term(products, product, 1, 0.5)
+	var atp = Substance.fetch("appp")
+	var adp = Substance.fetch("app")
+	
+	_add_reaction_term(reactants, atp, 1, 0.5)
+	_add_reaction_term(products, adp, 1, 0.5)
+	
+	var dG0_total = _calculate_delta_g(products, reactants)
+	#we don't add atp or water here as this reaction accounts for them already
+	
+	return [maximum_rate, reactants, products, dG0_total]
 
 ###################
 #activities
@@ -195,6 +354,56 @@ func _activity_transporter(chemistry : Chemistry, amount : float, params : Array
 	var maximum_rate = params[0]*amount/3.59381366380463
 	params[0] = maximum_rate
 	chemistry.new_operation(Operations.TRANSPORTER, params)
+	
+	var atp_usage = params[1]
+	if atp_usage > 0:
+		var atp_degradation_params = [
+			maximum_rate,
+			{
+				Substance.fetch("appp") : [
+					atp_usage,
+					0.5
+				]
+			},
+			{
+				Substance.fetch("app") : [
+					atp_usage,
+					0.5
+				],
+				Substance.fetch("p") : [
+					atp_usage,
+					1
+				]
+			},
+			-30.5
+		]
+		chemistry.new_operation(Operations.REACTION, atp_degradation_params)
+	
+
+func _activity_combine(chemistry : Chemistry, amount : float, params : Array):
+
+	#we divide speed by this number because this is the standard expression
+	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
+	var maximum_rate = params[0]*amount/3.59381366380463
+	params[0] = maximum_rate
+	chemistry.new_operation(Operations.REACTION, params)
+
+
+func _activity_glycolysis(chemistry : Chemistry, amount : float, params : Array):
+
+	#we divide speed by this number because this is the standard expression
+	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
+	var maximum_rate = params[0]*amount/3.59381366380463
+	params[0] = maximum_rate
+	chemistry.new_operation(Operations.REACTION, params)
+
+func _activity_kinase(chemistry : Chemistry, amount : float, params : Array):
+
+	#we divide speed by this number because this is the standard expression
+	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
+	var maximum_rate = params[0]*amount/3.59381366380463
+	params[0] = maximum_rate
+	chemistry.new_operation(Operations.REACTION, params)
 
 func _activity_print_name(chemistry : Chemistry):
 	chemistry.new_operation(Operations.PRINT, sequence)
@@ -242,3 +451,34 @@ func _fetch_substance(definition_character : String) -> Substance:
 	if subs == null:
 		subs = Substance.fetch_from_pattern(definition_character)
 	return subs
+
+static func _add_reaction_term(dict : Dictionary, subs : Substance, amount : float, k : float):
+	var data : Array = dict.get_or_add(subs, [0, k])
+	data[0] += amount
+	data[1] = (data[1]+k)/2
+
+static func _calculate_delta_g(products : Dictionary, reactants : Dictionary):
+	var delta_g = 0
+	for n in products:
+		delta_g += n.formation_energy * products[n][0]
+	for n in reactants:
+		delta_g -= n.formation_energy * reactants[n][0]
+	
+	return delta_g
+
+static func _remove_intermediary(products : Dictionary, reactants : Dictionary):
+	#this is to remove any substance that only exists as an intermediary
+	#eg: in the reaction Adenosine + 2Pi + 2 ATP -> 3ATP + 2Pi, 2Pi's are not actually necessary
+	#doing this both saves calculation and energy for the cell
+	for s in reactants.keys():
+		if products.has(s):
+			var net : int = int(reactants[s][0] - products[s][0])
+			if net > 0:
+				reactants[s][0] = net
+				products.erase(s)
+			elif net < 0:
+				products[s][0] = -net
+				reactants.erase(s)
+			else:
+				reactants.erase(s)
+				products.erase(s)

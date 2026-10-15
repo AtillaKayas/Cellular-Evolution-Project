@@ -43,16 +43,6 @@ layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 3
 auto_width = true
-item_count = 9
-item_0/text = "asdasdasd"
-item_1/text = "aasdasd"
-item_2/text = "a"
-item_3/text = "a"
-item_4/text = "a"
-item_5/text = "a"
-item_6/text = "a"
-item_7/text = "a"
-item_8/text = "a"
 
 [node name="TabBar" type="TabContainer" parent="HBoxContainer" unique_id=1277396910]
 layout_mode = 2
@@ -100,6 +90,68 @@ metadata/_tab_index = 1
 layout_mode = 2
 select_mode = 2
 
+[node name="Genome" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1033296580]
+visible = false
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+metadata/_tab_index = 2
+
+[node name="H" type="HBoxContainer" parent="HBoxContainer/TabBar/Genome" unique_id=339309737]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Spacer" type="Control" parent="HBoxContainer/TabBar/Genome/H" unique_id=93344924]
+custom_minimum_size = Vector2(5, 0)
+layout_mode = 2
+
+[node name="V" type="VBoxContainer" parent="HBoxContainer/TabBar/Genome/H" unique_id=1162949978]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/TabBar/Genome/H/V" unique_id=550117160]
+layout_mode = 2
+theme_override_fonts/font = ExtResource("1_dp0by")
+text = "Nucleins"
+horizontal_alignment = 1
+
+[node name="ItemList" type="ItemList" parent="HBoxContainer/TabBar/Genome/H/V" unique_id=1779319263]
+custom_minimum_size = Vector2(97, 0)
+layout_mode = 2
+size_flags_vertical = 3
+select_mode = 2
+auto_width = true
+
+[node name="V2" type="VBoxContainer" parent="HBoxContainer/TabBar/Genome/H" unique_id=1687087273]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="H" type="HBoxContainer" parent="HBoxContainer/TabBar/Genome/H/V2" unique_id=992145250]
+layout_mode = 2
+
+[node name="NucleinName" type="HBoxContainer" parent="HBoxContainer/TabBar/Genome/H/V2/H" unique_id=147379750]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/TabBar/Genome/H/V2/H/NucleinName" unique_id=160386982]
+layout_mode = 2
+text = "Label: "
+
+[node name="LineEdit" type="LineEdit" parent="HBoxContainer/TabBar/Genome/H/V2/H/NucleinName" unique_id=239762431]
+layout_mode = 2
+expand_to_text_length = true
+
+[node name="CopyNumber" type="Label" parent="HBoxContainer/TabBar/Genome/H/V2/H" unique_id=1965792299]
+layout_mode = 2
+text = "Copy Number: 0"
+
+[node name="Sequence" type="TextEdit" parent="HBoxContainer/TabBar/Genome/H/V2" unique_id=1489409639]
+layout_mode = 2
+size_flags_vertical = 3
+editable = false
+wrap_mode = 1
+
 [node name="Timer" type="Timer" parent="." unique_id=1975659702]
 wait_time = 0.33
 autostart = true
@@ -107,4 +159,5 @@ autostart = true
 [connection signal="tab_changed" from="HBoxContainer/TabBar" to="." method="_on_tab_bar_tab_changed"]
 [connection signal="text_submitted" from="HBoxContainer/TabBar/Stats/GridContainer/CellName/CellName" to="." method="_on_cell_name_text_submitted"]
 [connection signal="item_clicked" from="HBoxContainer/TabBar/Cytosol/ItemList" to="." method="_on_cytosol_item_selected"]
+[connection signal="text_changed" from="HBoxContainer/TabBar/Genome/H/V2/H/NucleinName/LineEdit" to="." method="_on_line_edit_text_changed"]
 [connection signal="timeout" from="Timer" to="." method="_step"]

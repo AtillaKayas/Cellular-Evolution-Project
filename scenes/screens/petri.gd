@@ -1,6 +1,6 @@
 class_name Petri extends Screen
 
-var tps : int = 4 #ticks per second
+static var tps : int = 4 #ticks per second
 var _elapsed_time : float = 0 #used by delta of the _process()
 var _last_cell_id : int = 0
 
@@ -39,7 +39,8 @@ func generate_basic():
 	var fill : Dictionary[String, float] = {
 		"k" : 005.0*Units.petri_volume, #everything in femtomoles (milimolar * picoliter = femtomole)
 		"n" : 150.0*Units.petri_volume,
-		"l" : 125.0*Units.petri_volume
+		"l" : 125.0*Units.petri_volume,
+		"g" : 010.0*Units.petri_volume,
 	}
 	#amino acids
 	for i in 16:

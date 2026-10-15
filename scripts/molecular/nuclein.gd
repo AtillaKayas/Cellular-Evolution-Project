@@ -1,22 +1,22 @@
 class_name Nuclein
 
-static var PROMOTER := "dddaaaddd"
-static var TERMINATOR := "ddddddddd"
+static var PROMOTER := "dcddbadb" #OPEN
+static var TERMINATOR := "accddcddba" #CLOPE
 static var _CODONS : Dictionary
 static var _REVERSE : Dictionary
 static var _intron_regex : RegEx
 
 var sequence : String
 var introns : Dictionary[String, float]
-var nick : String = ""
+var name : String
 
 static func _static_init() -> void:
 	_intron_regex = RegEx.new()
 	_intron_regex.compile(PROMOTER + "(.*?)" + TERMINATOR)
 
-func _init(seq : String, nick : String = "") -> void:
+func _init(name : String, seq : String) -> void:
+	self.name = name
 	sequence = seq
-	self.nick = nick
 	
 	
 	#store all valid introns (peptide-making units)

@@ -42,14 +42,16 @@ func get_cytosol_data() -> Dictionary[Substance, String]:
 	for subs in concentrations:
 		result[subs] = str(subs) + ": " + concentrations[subs]
 	
-	
 	return result
 
+func get_genome_data() -> Dictionary[Nuclein, int]:
+	return _genome.get_nucleins()
+
 func get_cytosol_substance_concentration(subs : Substance) -> String:
-	return _cytosol.get_concentration(subs)
+	return _cytosol.display_concentration(subs)
 
 func get_extracellular_substance_concentration(subs : Substance) -> String:
-	return _petri.fluid.get_concentration(subs)
+	return _petri.fluid.display_concentration(subs)
 
 func get_flux_report(subs : Substance) -> Array:
 	return _membrane.get_flux_report(subs)
@@ -106,7 +108,11 @@ func generate_basic():
 	var fill : Dictionary[String, float] = {
 		"k" : 150.0*Units.cell_volume, #everything in femtomoles (milimolar * picoliter = femtomole)
 		"n" : 015.0*Units.cell_volume,
-		"l" : 005.2*Units.cell_volume 
+		"l" : 005.2*Units.cell_volume,
+		"appp" : 005*Units.cell_volume,
+		"app" : 0.5*Units.cell_volume,
+		"p" : 001*Units.cell_volume,
+		"g" : 001*Units.cell_volume,
 	}
 	
 	#var fill : Dictionary[String, float] = {
@@ -125,16 +131,27 @@ func generate_basic():
 	
 	#nucleins
 	var main = Nuclein.PROMOTER + Nuclein.pep_to_seq("AAICLONAA") + Nuclein.TERMINATOR
+	
+	#ion channels
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABAAK") + Nuclein.TERMINATOR #Pot
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AJCABNAC") + Nuclein.TERMINATOR #Chl
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABIAN") + Nuclein.TERMINATOR #Sod
-
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABMFKLKNAE") + Nuclein.TERMINATOR 
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABAFKHKCHE") + Nuclein.TERMINATOR 
+	
+	#pumps and exchangers
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABMFKLKNAE") + Nuclein.TERMINATOR #KNa Pump
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABAFKHKCHE") + Nuclein.TERMINATOR #KCC
+	
+	#metabolism
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFDEFAEACEADDFBAAAFBA") + Nuclein.TERMINATOR #ADP Syn
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AJGLIEM") + Nuclein.TERMINATOR #Glycolysis
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABOAG") + Nuclein.TERMINATOR #Glu Channel
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AIKINAEPG") + Nuclein.TERMINATOR #Hexokinase
+	
+	
 	main += _generate_random_protein_bulk()
 
 	_cytosol.fill(fill)
-	var plasmid : Dictionary[Nuclein, int] = {Nuclein.new(main, "main") : 1}
+	var plasmid : Dictionary[Nuclein, int] = {Nuclein.new("MAIN", main) : 1}
 	_genome = Genome.new(plasmid)
 	
 	#fill = {

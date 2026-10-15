@@ -10,6 +10,7 @@ const gas = 8.314462618
 const faraday_over_gas = faraday/gas
 const RT_F = gas*temperature/faraday
 const temperature = 310.15 #37 C
+const atp_energy : float = 30.5
 
 const molecule_count_to_milimolars_in_cell_volume : float = 0.00000021
 const membrane_base_input_resistance : float = 0.06

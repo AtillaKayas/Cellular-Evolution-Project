@@ -31,6 +31,10 @@ func remove_substance(subs : Substance, femtomoles : float) -> float:
 func set_substance(subs : Substance, femtomoles : float):
 	_solutes[subs] = femtomoles
 
+func get_concentration(subs : Substance) -> float:
+	return _solutes.get(subs, 0.0)
+	
+
 func remove_mass(substances : Dictionary[Substance, float], multiplier : float):
 	for subs in substances:
 		var reserve = _solutes.get(subs, 0)
@@ -68,7 +72,5 @@ func get_all_concentrations() -> Dictionary[Substance, String]:
 		result[subs] = _to_concentration(_solutes[subs])
 	return result
 
-func get_concentration(subs : Substance) -> String:
-	var amount = _solutes.get(subs)
-	if !amount is float: amount = 0
-	return _to_concentration(amount)
+func display_concentration(subs : Substance) -> String:
+	return _to_concentration(get_concentration(subs))

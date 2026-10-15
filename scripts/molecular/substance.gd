@@ -4,19 +4,21 @@ enum {NICK, MASS, VOLUME, CHARGE, PATTERN}
 
 var name : String
 var nick : String
-var mass : float
+var mass : float #g/mol
 var charge : int
+var formation_energy : float #kJ/mol
 var description : String
 
 var pattern : String
 
 static var _all : Dictionary[String, Substance]
 
-func _init(_name : String, _mass : float, _charge : int, _nick : String = "", _pattern : String = "", _description : String = ""):
+func _init(_name : String, _mass : float, _charge : int, _formation : float = 0, _nick : String = "", _pattern : String = "", _description : String = ""):
 	_all[_name] = self
 	name = _name
 	mass = _mass
 	charge = _charge
+	formation_energy = _formation
 	nick = _nick
 	pattern = _pattern
 	description = _description
@@ -31,8 +33,9 @@ static func fetch(subs_name : String) -> Substance:
 		printerr("ERROR: Attempted to call upon a nonexistent substance")
 		return new(
 			subs_name,         #NAME
-			0.2,               #MASS
+			20,                #MASS
 			0,                 #CHARGE
+			0,
 			"",                #NICK
 			"",                #PATTERN
 			"Generated as a dummy - the sim attempted to call upon a nonexistent substance" #DESCRIPTION
@@ -51,69 +54,118 @@ static func generate_basic():
 	#fatty acids
 	new(
 		"z",         #NAME
-		1.8,         #MASS
+		180,         #MASS
 		0,           #CHARGE
+		0,           #Standard Gibbs free energy of formation
 		"LCFA",      #NICK - Long Chain Fatty Acid
-		"FADIII"     #PATTERN
+		"FADIII",    #PATTERN
 	)
 	
 	new(
 		"y",         #NAME
-		0.72,        #MASS
+		72,        #MASS
 		0,           #CHARGE
-		"MCFA",      #NICK - Long Chain Fatty Acid
+		0,           #Standard Gibbs free energy of formation
+		"MCFA",      #NICK - Medium Chain Fatty Acid
 		"FADII"      #PATTERN
 	)
 	new(
 		"x",         #NAME
-		0.26,        #MASS
+		26,        #MASS
 		0,           #CHARGE
-		"SCFA",      #NICK - Long Chain Fatty Acid
+		0,           #Standard Gibbs free energy of formation
+		"SCFA",      #NICK - Short Chain Fatty Acid
 		"FADI"      #PATTERN
 	)
 	
 	#ions
 	new(
 		"n",         #NAME
-		0.22,        #MASS
+		22,        #MASS
 		+1,          #CHARGE
+		0,           #Standard Gibbs free energy of formation
 		"Sodium",    #NICK
 		"N"       #PATTERN
 	)
 	new(
 		"k",         #NAME
-		0.38,        #MASS
+		38,        #MASS
 		+1,          #CHARGE
+		0,           #Standard Gibbs free energy of formation
 		"Potassium", #NICK
 		"K"       #PATTERN
 	)
 	new(
 		"l",         #NAME
-		0.34,        #MASS
+		34,        #MASS
 		-1,          #CHARGE
+		0,           #Standard Gibbs free energy of formation
 		"Chloride",  #NICK
 		"C"       #PATTERN
 	)
 	new(
 		"a",         #NAME
-		0.4,         #MASS
+		40,         #MASS
 		+1,          #CHARGE
+		0,           #Standard Gibbs free energy of formation
 		"Calcium",   #NICK
 		"A"       #PATTERN
 	)
 	new(
 		"p",         #NAME
-		0.94,        #MASS
+		96,          #MASS
 		-3,          #CHARGE
-		"Phosphate" ,#NICK
-		"P"       #PATTERN
+		-1060,       #Standard Gibbs free energy of formation
+		"Inorganic Phosphate" ,#NICK
+		"F"          #PATTERN
 	)
 	new(
 		"pzz",        #NAME
-		4.54,         #MASS
+		454,          #MASS
 		-3,           #CHARGE
+		0,            #Standard Gibbs free energy of formation
 		"Phospolipid",#NICK
 		"PPLPD"       #PATTERN
+	)
+	new(
+		"app",        #NAME
+		427,          #MASS
+		-3,           #CHARGE
+		-1906,        #Standard Gibbs free energy of formation
+		"ADP",        #NICK
+		"ABB"         #PATTERN
+	)
+	new(
+		"appp",       #NAME
+		507,          #MASS
+		-4,           #CHARGE
+		-2102.88,     #Standard Gibbs free energy of formation
+		"ATP",        #NICK
+		"ABBB"        #PATTERN
+	)
+	new(
+		"g",          #NAME
+		180,          #MASS
+		0,            #CHARGE
+		-910,        #Standard Gibbs free energy of formation
+		"Glucose",    #NICK
+		"G"        #PATTERN
+	)
+	new(
+		"h",          #NAME
+		90,           #MASS
+		0,            #CHARGE
+		-497,         #Standard Gibbs free energy of formation
+		"Pyruvate",   #NICK
+		"GOANO"       #PATTERN
+	)
+	new(
+		"gp",         #NAME
+		88,           #MASS
+		0,            #CHARGE
+		-1123.58,         #Standard Gibbs free energy of formation
+		"Glucose-6-Phosphate",   #NICK
+		"GB"       #PATTERN
 	)
 	
 	#amino acids
@@ -121,8 +173,9 @@ static func generate_basic():
 		var letter = char(65 + i)
 		new(
 			letter,                                 #NAME
-			0.35 + absf(1.4 - (float(i)/20)),       #MASS - rigged to range between 1 to 1.8
+			35   + absf(140 - (float(i)/0.2)),       #MASS - rigged to range between 1 to 1.8
 			((i+7) / 10)-1,                         #CHARGE - rigged to give 3 + and 3 - charged amino acids
+			-305,           #Standard Gibbs free energy of formation
 			"Amino Acid " + letter,                 #NICK
 			letter + letter + letter                #PATTERN
 		)
@@ -132,8 +185,9 @@ static func generate_basic():
 		var letter = char(97 + i)
 		new(
 			letter,                                     #NAME
-			1.3,                                        #MASS
+			130,                                        #MASS
 			0,                                          #CHARGE
+			-305,           #Standard Gibbs free energy of formation
 			"Nucleotide " + letter,                     #NICK
 			char(65 + i) + char(67 + i) + char(69 + i), #PATTERN
 		)

@@ -34,8 +34,9 @@ func get_flux_report(subs : Substance) -> Array:
 	return _flux_report.get(subs, [])
 
 func get_leak_permeability(subs : Substance) -> float:
-	var size_coefficient = pow(maxf(2.0-subs.mass, 0)/2.0, 4) #things larger than 200 Da can't pass at all
-	var arbitrary_coefficient = 1.1-(subs.charge*(1-clamp(absf(0.22-subs.mass), 0, 1)))
+	var mass := subs.mass/100
+	var size_coefficient = pow(maxf(2.0-mass, 0)/2.0, 4) #things larger than 200 Da can't pass at all
+	var arbitrary_coefficient = 1.1-(subs.charge*(1-clamp(absf(0.22-mass), 0, 1)))
 	
 	var lipid_permeability = size_coefficient*arbitrary_coefficient*leak_permeation_speed
 	return lipid_permeability

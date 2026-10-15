@@ -38,3 +38,6 @@ func get_all_possible_peptides() -> Dictionary:
 				peptides[peptide] = speed
 
 	return result
+
+func get_nucleins():
+	return _nucleins.duplicate()
