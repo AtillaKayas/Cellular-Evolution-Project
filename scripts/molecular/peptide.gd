@@ -9,7 +9,8 @@ const ACT = {
 	DEFINE = "DEF",
 	COMBINE = "ADD",
 	GLYCOLYSIS = "GLYSIS",
-	KINASE = "KNASE"
+	KINASE = "KNASE",
+	CYCLIN = "CYCLE"
 }
 
 static var DOMAIN = {
@@ -21,7 +22,8 @@ static var DOMAIN = {
 	ACT.DEFINE : ["DEF", _domain_define, false],
 	ACT.COMBINE : ["ADD", _domain_combine, false],
 	ACT.GLYCOLYSIS : ["GLIE", _domain_gylcolysis, false],
-	ACT.KINASE : ["KINAE", _domain_kinase, false]
+	ACT.KINASE : ["KINAE", _domain_kinase, false],
+	ACT.CYCLIN : ["CCND", _domain_cycle, false]
 }
 
 
@@ -61,6 +63,7 @@ func activities(chemistry : Chemistry, amount : float) -> bool:
 			ACT.COMBINE: _activity_combine(chemistry, amount, params)
 			ACT.GLYCOLYSIS: _activity_glycolysis(chemistry, amount, params)
 			ACT.KINASE: _activity_kinase(chemistry, amount, params)
+			ACT.CYCLIN: _activity_cycle(chemistry, amount, params)
 	return true
 
 func find_bottleneck(subs : Dictionary[Substance, float]) -> Array:
@@ -323,7 +326,6 @@ static func _domain_kinase(_peptide, _sequence : String, i):
 
 	var reactants : Dictionary
 	var products : Dictionary
-	var p = Substance.fetch("p")
 	
 	_add_reaction_term(reactants, reactant, 1, half_saturation_constant)
 	_add_reaction_term(products, product, 1, 0.5)
@@ -337,6 +339,16 @@ static func _domain_kinase(_peptide, _sequence : String, i):
 	#we don't add atp or water here as this reaction accounts for them already
 	
 	return [maximum_rate, reactants, products, dG0_total]
+
+static func _domain_cycle(_peptide, _sequence : String, i):
+	if _sequence.length()-1 <= i:
+		return []
+	
+	var rate = \
+	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+1)), 0, 15, 0.3, 0.6)
+	rate -= 0.4
+	
+	return [rate]
 
 ###################
 #activities
@@ -396,6 +408,12 @@ func _activity_glycolysis(chemistry : Chemistry, amount : float, params : Array)
 	var maximum_rate = params[0]*amount/3.59381366380463
 	params[0] = maximum_rate
 	chemistry.new_operation(Operations.REACTION, params)
+
+
+func _activity_cycle(chemistry : Chemistry, amount : float, params : Array):
+	var rate = params[0]*amount/3.59381366380463/2
+	params[0] = rate
+	chemistry.new_operation(Operations.CYCLE, params)
 
 func _activity_kinase(chemistry : Chemistry, amount : float, params : Array):
 

@@ -74,3 +74,13 @@ func get_all_concentrations() -> Dictionary[Substance, String]:
 
 func display_concentration(subs : Substance) -> String:
 	return _to_concentration(get_concentration(subs))
+
+func divide() -> Fluid:
+	var donated : Dictionary[String, float]
+	for n in _solutes:
+		var new_amount = _solutes[n]/2
+		_solutes[n] = new_amount
+		donated[n.name] = new_amount
+	var sibling := Fluid.new()
+	sibling.fill(donated)
+	return sibling

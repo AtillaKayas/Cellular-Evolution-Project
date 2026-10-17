@@ -3,7 +3,7 @@ class_name Operations
 #the reason i made this a seperate class is to not overcrowd Chemistry.
 #things the Operations can do are highly correlated with stuff defined in Peptides
 
-enum {PRINT, TRANSPORTER, REACTION}
+enum {PRINT, TRANSPORTER, REACTION, CYCLE}
 
 const REACTIONS_SPEED := 1e-3
 
@@ -36,6 +36,7 @@ func tick(cytosol : Fluid, membrane : Membrane):
 		match op[0]:
 			PRINT: _print(args)
 			REACTION: _reaction(args)
+			CYCLE: _cycle(args)
 			_: _dummy(args)
 
 func _print(args : Array):
@@ -104,3 +105,7 @@ func _reaction(args : Array):
 		_cytosol.add_substance(r, -reaction_rate * reactants[r][0])
 	for p in products:
 		_cytosol.add_substance(p, reaction_rate * products[p][0])
+
+func _cycle(args : Array):
+	var rate = args[0][0]
+	_cell.confidence += rate

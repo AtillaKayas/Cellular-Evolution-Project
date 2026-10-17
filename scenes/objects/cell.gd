@@ -7,6 +7,7 @@ var _cytosol : Fluid
 var _membrane : Membrane
 var _proteome : Proteome
 var _genome : Genome
+var confidence : float #a cell with a confidence of 100% divides
 
 var grid_pos : Vector2i
 
@@ -19,6 +20,13 @@ var _states : Array[Chemistry]
 func tick():
 	if _chem == null: return
 	_chem.tick(_cytosol, _membrane)
+	
+	if confidence > 0:
+		confidence -= 0.005
+	confidence = maxf(confidence, 0)
+	if confidence > 1:
+		_divide()
+	
 
 func _new_chemistry():
 	#go through existing chemistries (stored in _states) to see if any of them match with the current composition
@@ -32,6 +40,11 @@ func _new_chemistry():
 	
 	_chem.count(_cytosol._solutes)
 	_proteome = _chem.translation(_cytosol, _genome)
+
+func _divide():
+	confidence = 0
+	#var new_fluid = _cytosol.divide()
+	#var new_membrane = _membrane.divide()
 
 #################
 ####getters
@@ -61,8 +74,6 @@ func get_membrane_permeability(subs : Substance) -> String:
 
 func get_membrane_potential() -> float:
 	return _membrane.membrane_potential
-
-
 
 
 
@@ -147,6 +158,8 @@ func generate_basic():
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABOAG") + Nuclein.TERMINATOR #Glu Channel
 	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AIKINAEPG") + Nuclein.TERMINATOR #Hexokinase
 	
+	#cell cycle
+	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCCNDH") + Nuclein.TERMINATOR #Cycle
 	
 	main += _generate_random_protein_bulk()
 

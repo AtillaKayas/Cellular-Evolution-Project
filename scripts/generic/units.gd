@@ -48,7 +48,7 @@ static func capital_to_integer(s : int):
 	#starts from 0
 	return s-65
 
-static func log_map(x : int, in_min := 0, in_max := 14, out_min := 0.1, out_max := 1000) -> float:
+static func log_map(x : int, in_min := 0, in_max := 14, out_min := 0.1, out_max := 1000.0) -> float:
 	x = clampi(x, in_min, in_max)
 	var t = float(x - in_min) / float(in_max - in_min)          # scale input to 0-1
 	return out_min * pow(out_max / out_min, t)                # exponential interpolation

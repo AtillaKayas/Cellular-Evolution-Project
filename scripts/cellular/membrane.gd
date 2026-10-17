@@ -174,7 +174,15 @@ func add_pump(maximum_rate : float, ion1 : Substance, Kion1 : float, ion2 : Subs
 func add_carrier(maximum_rate : float, atp_usage : float, ports : Array):
 	_carriers.append([maximum_rate, atp_usage, ports])
 
-
+func divide() -> Fluid:
+	var donated : Dictionary[String, float]
+	for n in _composition:
+		var new_amount = _composition[n]/2
+		_composition[n] = new_amount
+		donated[n.name] = new_amount
+	var sibling := Fluid.new()
+	sibling.fill(donated)
+	return sibling
 
 #code below is to make ion permeabilities perfect
 #getting the K flux / Na flux to -0.66666666 is the goal, if we do so we can

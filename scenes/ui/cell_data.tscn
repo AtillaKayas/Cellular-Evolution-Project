@@ -49,12 +49,11 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 8
 mouse_filter = 0
-current_tab = 1
+current_tab = 0
 drag_to_rearrange_enabled = true
 deselect_enabled = true
 
 [node name="Stats" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1220988723]
-visible = false
 custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 theme_override_constants/margin_left = 6
@@ -77,7 +76,19 @@ text = "Cell Name"
 layout_mode = 2
 expand_to_text_length = true
 
+[node name="Confidence" type="HBoxContainer" parent="HBoxContainer/TabBar/Stats/GridContainer" unique_id=96000575]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="HBoxContainer/TabBar/Stats/GridContainer/Confidence" unique_id=703811721]
+layout_mode = 2
+text = "Confidence"
+
+[node name="Confidence" type="LineEdit" parent="HBoxContainer/TabBar/Stats/GridContainer/Confidence" unique_id=2113465352]
+layout_mode = 2
+expand_to_text_length = true
+
 [node name="Cytosol" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1289957544]
+visible = false
 custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 theme_override_constants/margin_left = 6
@@ -158,6 +169,7 @@ autostart = true
 
 [connection signal="tab_changed" from="HBoxContainer/TabBar" to="." method="_on_tab_bar_tab_changed"]
 [connection signal="text_submitted" from="HBoxContainer/TabBar/Stats/GridContainer/CellName/CellName" to="." method="_on_cell_name_text_submitted"]
+[connection signal="text_submitted" from="HBoxContainer/TabBar/Stats/GridContainer/Confidence/Confidence" to="." method="_on_confidence_text_submitted"]
 [connection signal="item_clicked" from="HBoxContainer/TabBar/Cytosol/ItemList" to="." method="_on_cytosol_item_selected"]
 [connection signal="text_changed" from="HBoxContainer/TabBar/Genome/H/V2/H/NucleinName/LineEdit" to="." method="_on_line_edit_text_changed"]
 [connection signal="timeout" from="Timer" to="." method="_step"]

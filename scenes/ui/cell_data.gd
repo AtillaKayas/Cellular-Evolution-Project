@@ -7,7 +7,9 @@ var _selected_tab : int
 
 @onready var _presets = $HBoxContainer/Presets
 # Statistics
+@onready var _stats : HBoxContainer = $HBoxContainer/TabBar/Stats/GridContainer/Confidence
 @onready var _cell_name: LineEdit = $HBoxContainer/TabBar/Stats/GridContainer/CellName/CellName
+@onready var _confidence: LineEdit = $HBoxContainer/TabBar/Stats/GridContainer/Confidence/Confidence
 # Cytosol
 @onready var _cytosol_item_list: ItemList = $HBoxContainer/TabBar/Cytosol/ItemList
 
@@ -64,7 +66,8 @@ func _step() -> void:
 		_: pass
 
 func _stats_step():
-	pass
+	if !_confidence.is_editing(): #if it is being edited do not update the text
+		_confidence.text = str(snappedf(_selected_cell.confidence, 0.001))
 
 func _cytosol_step():
 	var cytosol_data := _selected_cell.get_cytosol_data()
@@ -118,7 +121,7 @@ func _genome_handle_nuclein_data(genome_data : Dictionary[Nuclein, int]):
 	var selected = _nucleins_list.get_item_metadata(selected_arr[0]) #there can only be 1 selected
 	
 	#name
-	if !_nuclein_name.has_focus(): #if it has focus doing this messes with the typing
+	if !_nuclein_name.is_editing(): #if it has focus doing this messes with the typing
 		_nuclein_name.text = selected.name
 	
 	#copy number
@@ -147,3 +150,9 @@ func _on_line_edit_text_changed(new_text: String) -> void:
 	if selected_arr.is_empty(): return
 	var selected = _nucleins_list.get_item_metadata(selected_arr[0]) #there can only be 1 selected
 	selected.name = new_text
+
+
+func _on_confidence_text_submitted(new_text: String) -> void:
+	if !new_text.is_valid_float(): return
+	_selected_cell.confidence = clampf(float(new_text), 0.0, 1.0)
+	_stats.grab_focus()
