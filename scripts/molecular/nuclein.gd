@@ -1,9 +1,10 @@
 class_name Nuclein
 
+static var DEFAULT_BASES = ["a", "b", "c", "d"]
 static var PROMOTER := "dcddbadb" #OPEN
 static var TERMINATOR := "accddcddba" #CLOPE
-static var _CODONS : Dictionary
-static var _REVERSE : Dictionary
+static var _CODONS : Dictionary = { "aa": "A", "ab": "B", "ac": "C", "ad": "D", "ba": "E", "bb": "F", "bc": "G", "bd": "H", "ca": "I", "cb": "J", "cc": "K", "cd": "L", "da": "M", "db": "N", "dc": "O", "dd": "P" }
+static var _REVERSE : Dictionary = { "A": "aa", "B": "ab", "C": "ac", "D": "ad", "E": "ba", "F": "bb", "G": "bc", "H": "bd", "I": "ca", "J": "cb", "K": "cc", "L": "cd", "M": "da", "N": "db", "O": "dc", "P": "dd" }
 static var _intron_regex : RegEx
 
 var sequence : String
@@ -14,11 +15,15 @@ static func _static_init() -> void:
 	_intron_regex = RegEx.new()
 	_intron_regex.compile(PROMOTER + "(.*?)" + TERMINATOR)
 
-func _init(name : String, seq : String) -> void:
-	self.name = name
+func _init(nuclein_name : String, seq : String, recalculate : bool = true) -> void:
+	name = nuclein_name
 	sequence = seq
 	
+	if recalculate:
+		recalculate_peptides()
 	
+func recalculate_peptides():
+	introns.clear()
 	#store all valid introns (peptide-making units)
 	var results = _intron_regex.search_all(sequence)
 	for result in results:
@@ -32,8 +37,12 @@ func _init(name : String, seq : String) -> void:
 		var amount = introns.get_or_add(intron, 0)
 		introns[intron] += amount
 
+
 static func generate_basic():
 	var nucleotides = ["a", "b", "c", "d"]
+	_CODONS.clear()
+	_REVERSE.clear()
+	
 	var x : int = 0
 	for i in nucleotides:
 		for ii in nucleotides:

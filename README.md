@@ -5,18 +5,18 @@
 
 ## Status
 
-**Work in progress.** The genome, peptide, chemistry, membrane transport and glycolysis systems are implemented. The starter cell reaches membrane equilibrium however its ATP becomes quickly depleted. No cell division code is written as of yet due to this problem. 
+**Work in progress.** The genome, peptide, chemistry, membrane transport and glycolysis systems are implemented. The cells seem to be able to grow exponentially but with great cost to performance, and also there isn't a stable state for intracellular concentrations as of yet.
 
 ## How to run
 
 1. Install Godot 4.7.2.stable
 2. Import the project from the Godot's menu and hit 'Import & Run'
 3. Press Play.
-4. You'll see the starter cell represented by a hexagon in the middle. Below it are the contents of its Cytosol. Clicking a substance will open a menu giving various debug information about how it currently behaves. A way to view the Genome and Proteome are yet to be implemented, you'll have to check the code for them.
+4. You'll see the starter cell represented by a circle in the middle. Below it are the contents of its Cytosol. Clicking a substance will open a menu giving various debug information about how it currently behaves. A way to view the Genome and Proteome are yet to be implemented, you'll have to check the code for them.
 ## Design overview
 
 ### Cells
-Cells are placed in a hexagonal grid for both simplicity and efficiency's sake. Running a physics engine is a burden to the processor, and usually requires even more burdensome soft body mechanics as rigid cell bodies aren't all that much realistic from what I have currently made.
+Cells are represented by circles on the screen. A starter cell has a volume of 8 pL while the medium it lives in is around 1L.
 
 ### Substances
 
@@ -54,10 +54,9 @@ calculation and Michaelis-Menten-type substrate saturation for carrier proteins.
 starter cell I made is unable to reach equilibrium despite weeks of work put.
 
 ## Known issues
-- The starter cell does not reach equilibrium (see Status).
+- The cells do not reach membrane equilibrium (see Status).
 - The UI is pretty limited.
-- There are still many debug lines existing in the code and it prints many unrelated stuff.
-- The starter cell doesn't replicate yet.
+- There are still many debug lines existing in the code.
 
 ## License
 MIT. See [LICENSE](LICENSE).

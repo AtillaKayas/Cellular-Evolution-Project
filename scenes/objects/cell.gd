@@ -1,15 +1,50 @@
-class_name Cell extends Node2D
+class_name Cell
 
-@onready var _tml : TileMapLayer = $".."
-@onready var _petri : Petri = $"../.."
+#nucleins
+static var default_starter_nuclein = \
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AAICLONAA") + Nuclein.TERMINATOR + \
+	#K Channel
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABAAK") + Nuclein.TERMINATOR + \
+	#Cl Channel
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AJCABNAC") + Nuclein.TERMINATOR + \
+	#Na Channel
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABIAN") + Nuclein.TERMINATOR + \
+	
+	#K-Na Pump
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABMFKLKNAE") + Nuclein.TERMINATOR + \
+	#KCC Exchanger
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABAFKHKCHE") + Nuclein.TERMINATOR + \
+	#Na-Amino Acid Exchanger
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AFACIMFNILF") + Nuclein.TERMINATOR + \
+	
+	#Aquaporin
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AFFLOODA") + Nuclein.TERMINATOR + \
+	
+	#ADP Synthase
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AFDEFAEACEADDFBAAAFBA") + Nuclein.TERMINATOR + \
+	#Glycolysis Enzyme
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AJGLIEM") + Nuclein.TERMINATOR + \
+	#Glucose Channel
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABOAG") + Nuclein.TERMINATOR + \
+	#Hexokinase
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AIKINAEPG") + Nuclein.TERMINATOR + \
+	
+	#Cyclin
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCCNDL") + Nuclein.TERMINATOR
+
+
+var name : String
+var _petri : Petri
+var petri_object : PetriObject
 
 var _cytosol : Fluid
 var _membrane : Membrane
 var _proteome : Proteome
 var _genome : Genome
-var confidence : float #a cell with a confidence of 100% divides
 
-var grid_pos : Vector2i
+var confidence : float #a cell with a confidence of 100% divides
+var _old_volume : float
+
 
 const rng_seed : int = 52435261132
 static var _rng = RandomNumberGenerator.new()
@@ -17,16 +52,25 @@ static var _rng = RandomNumberGenerator.new()
 var _chem : Chemistry
 var _states : Array[Chemistry]
 
+func _init(petri : Petri, petri_obj : PetriObject, cell_name : String, genome : Genome, cytosol):
+	_petri = petri
+	petri_object = petri_obj
+	name = cell_name
+	_genome = genome
+	_cytosol = cytosol
+	_membrane = Membrane.new(_cytosol, petri.fluid)
+	_old_volume = _cytosol.volume
+	_new_chemistry()
+
 func tick():
 	if _chem == null: return
 	_chem.tick(_cytosol, _membrane)
 	
 	if confidence > 0:
-		confidence -= 0.005
+		confidence -= 0.0000001 * Petri.acc * (4.0/Petri.tps)
 	confidence = maxf(confidence, 0)
 	if confidence > 1:
 		_divide()
-	
 
 func _new_chemistry():
 	#go through existing chemistries (stored in _states) to see if any of them match with the current composition
@@ -43,8 +87,12 @@ func _new_chemistry():
 
 func _divide():
 	confidence = 0
-	#var new_fluid = _cytosol.divide()
-	#var new_membrane = _membrane.divide()
+	var new_fluid = _cytosol.section(_cytosol.volume/2)
+	var dir := Vector2.from_angle(randf() * TAU)
+	var offset = dir * (Units.volume_to_radius(get_volume()) + Units.volume_to_radius(new_fluid.volume))
+	var new_genome = _genome.replicate()
+	var pos = petri_object.get_transform().origin + offset
+	_petri.add_cell(pos, new_fluid.volume, "", new_genome, new_fluid)
 
 #################
 ####getters
@@ -57,7 +105,7 @@ func get_cytosol_data() -> Dictionary[Substance, String]:
 	
 	return result
 
-func get_genome_data() -> Dictionary[Nuclein, int]:
+func get_genome_data() -> Array[Nuclein]:
 	return _genome.get_nucleins()
 
 func get_cytosol_substance_concentration(subs : Substance) -> String:
@@ -75,117 +123,11 @@ func get_membrane_permeability(subs : Substance) -> String:
 func get_membrane_potential() -> float:
 	return _membrane.membrane_potential
 
+func get_volume() -> float:
+	return _cytosol.volume
 
+func get_volume_difference() -> float:
+	return absf(get_volume() - _old_volume) / maxf(_old_volume, 1e-9)
 
-
-
-
-
-
-
-
-
-
-
-
-####################
-#start functions
-####################
-
-func _ready():
-	grid_pos = _tml.local_to_map(position)
-	_petri.register(self)
-	generate_basic()
-	_new_chemistry()
-
-func generate_basic():
-	
-	#for i in range(0, 16):
-	#	print(char(i+65), " ", pow(1.59, i))
-	
-	
-	#for x in range(1, 17):
-	#	var normalization = x/8.0
-	#	var permeability = pow(10, normalization)
-	#	print(x, " ", permeability)
-	
-	
-	_rng.set_seed(rng_seed)
-	
-	_cytosol = Fluid.new()
-	_membrane = Membrane.new(_cytosol, _petri.fluid)
-	_cytosol.volume = Units.cell_volume
-	
-	var fill : Dictionary[String, float] = {
-		"k" : 150.0*Units.cell_volume, #everything in femtomoles (milimolar * picoliter = femtomole)
-		"n" : 015.0*Units.cell_volume,
-		"l" : 005.2*Units.cell_volume,
-		"appp" : 005*Units.cell_volume,
-		"app" : 0.5*Units.cell_volume,
-		"p" : 001*Units.cell_volume,
-		"g" : 001*Units.cell_volume,
-	}
-	
-	#var fill : Dictionary[String, float] = {
-	#	"k" : 155.0*Units.cell_volume,
-	#	"n" : 010.0*Units.cell_volume,
-	#	"l" : 005.0*Units.cell_volume 
-	#}
-	
-	#amino acids
-	for i in 16:
-		var letter = char(65 + i)
-		fill[letter] = 3.0/16.0*Units.cell_volume
-	for i in 4:
-		var letter = char(97 + i)
-		fill[letter] = 1.0*Units.cell_volume
-	
-	#nucleins
-	var main = Nuclein.PROMOTER + Nuclein.pep_to_seq("AAICLONAA") + Nuclein.TERMINATOR
-	
-	#ion channels
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABAAK") + Nuclein.TERMINATOR #Pot
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AJCABNAC") + Nuclein.TERMINATOR #Chl
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABIAN") + Nuclein.TERMINATOR #Sod
-	
-	#pumps and exchangers
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABMFKLKNAE") + Nuclein.TERMINATOR #KNa Pump
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCABAFKHKCHE") + Nuclein.TERMINATOR #KCC
-	
-	#metabolism
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFDEFAEACEADDFBAAAFBA") + Nuclein.TERMINATOR #ADP Syn
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AJGLIEM") + Nuclein.TERMINATOR #Glycolysis
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABOAG") + Nuclein.TERMINATOR #Glu Channel
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AIKINAEPG") + Nuclein.TERMINATOR #Hexokinase
-	
-	#cell cycle
-	main += Nuclein.PROMOTER + Nuclein.pep_to_seq("AFCCNDH") + Nuclein.TERMINATOR #Cycle
-	
-	main += _generate_random_protein_bulk()
-
-	_cytosol.fill(fill)
-	var plasmid : Dictionary[Nuclein, int] = {Nuclein.new("MAIN", main) : 1}
-	_genome = Genome.new(plasmid)
-	
-	#fill = {
-	#	"pzz" : 1.25 #everything in milimolars, assuming the cell volume is relevant for the membrane
-	#}
-	
-	#_membrane.fill(fill)
-
-#####################
-#static privates
-####################
-
-static func _generate_random_protein_bulk() -> String:
-	const chars = "abcd"
-	var result = ""
-	
-	for n in 50:
-		var gibberish : String = ""
-		for m in _rng.randi_range(8, 48):
-			gibberish = gibberish + chars[_rng.randi() % 4]
-		result += Nuclein.PROMOTER + gibberish + Nuclein.TERMINATOR
-		for m in _rng.randi_range(0, 16):
-			result = result + chars[_rng.randi() % 4]
-	return result
+func save_volume():
+	_old_volume = get_volume()

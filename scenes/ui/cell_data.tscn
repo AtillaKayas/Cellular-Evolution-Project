@@ -87,6 +87,10 @@ text = "Confidence"
 layout_mode = 2
 expand_to_text_length = true
 
+[node name="Volume" type="Label" parent="HBoxContainer/TabBar/Stats/GridContainer" unique_id=406819937]
+layout_mode = 2
+text = "Volume: 0fdvs"
+
 [node name="Cytosol" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1289957544]
 visible = false
 custom_minimum_size = Vector2(0, 160)
@@ -152,10 +156,6 @@ text = "Label: "
 [node name="LineEdit" type="LineEdit" parent="HBoxContainer/TabBar/Genome/H/V2/H/NucleinName" unique_id=239762431]
 layout_mode = 2
 expand_to_text_length = true
-
-[node name="CopyNumber" type="Label" parent="HBoxContainer/TabBar/Genome/H/V2/H" unique_id=1965792299]
-layout_mode = 2
-text = "Copy Number: 0"
 
 [node name="Sequence" type="TextEdit" parent="HBoxContainer/TabBar/Genome/H/V2" unique_id=1489409639]
 layout_mode = 2

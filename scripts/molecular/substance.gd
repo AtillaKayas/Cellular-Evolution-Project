@@ -174,7 +174,7 @@ static func generate_basic():
 		new(
 			letter,                                 #NAME
 			35   + absf(140 - (float(i)/0.2)),       #MASS - rigged to range between 1 to 1.8
-			((i+7) / 10)-1,                         #CHARGE - rigged to give 3 + and 3 - charged amino acids
+			(i % 3)-1,                              #CHARGE
 			-305,           #Standard Gibbs free energy of formation
 			"Amino Acid " + letter,                 #NICK
 			letter + letter + letter                #PATTERN
@@ -191,3 +191,8 @@ static func generate_basic():
 			"Nucleotide " + letter,                     #NICK
 			char(65 + i) + char(67 + i) + char(69 + i), #PATTERN
 		)
+	
+	for n in Peptide.DEFAULT_AMINOS:
+		var amino = Substance.fetch(n)
+		if amino == null: continue
+		Peptide.AMINO_POOL.append(amino)

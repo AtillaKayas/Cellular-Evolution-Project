@@ -4,15 +4,15 @@ const petri_volume : float = 1e12 #picoliters
 const cell_volume : float = 8 #picoliters
 const water_mass : float = 1 #nanogram per picoliters
 const peptide_unit_to_molecules : float = 5000.0
+const cell_volume_to_in_game_volume : float = 1000.0
+const molecule_count_to_milimolars_in_cell_volume = 2.1e-10
 
 const faraday = 96485.33212
 const gas = 8.314462618
-const faraday_over_gas = faraday/gas
 const RT_F = gas*temperature/faraday
 const temperature = 310.15 #37 C
 const atp_energy : float = 30.5
 
-const molecule_count_to_milimolars_in_cell_volume : float = 0.00000021
 const membrane_base_input_resistance : float = 0.06
 
 static func reverse_sigmoid(character : int):
@@ -75,3 +75,6 @@ static func to_scientific_notation(x : float, decimals : int = -1):
 	if decimals >= 0:
 		coefficient = snappedf(coefficient, pow(10, -decimals))
 	return str(coefficient) + "x10^" + str(exponent)
+
+static func volume_to_radius(x : float) -> float:
+	return pow(Units.cell_volume_to_in_game_volume*x*3/4/PI, 1.0/3.0)

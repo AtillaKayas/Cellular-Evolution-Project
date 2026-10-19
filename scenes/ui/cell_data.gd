@@ -10,13 +10,13 @@ var _selected_tab : int
 @onready var _stats : HBoxContainer = $HBoxContainer/TabBar/Stats/GridContainer/Confidence
 @onready var _cell_name: LineEdit = $HBoxContainer/TabBar/Stats/GridContainer/CellName/CellName
 @onready var _confidence: LineEdit = $HBoxContainer/TabBar/Stats/GridContainer/Confidence/Confidence
+@onready var _volume: Label = $HBoxContainer/TabBar/Stats/GridContainer/Volume
 # Cytosol
 @onready var _cytosol_item_list: ItemList = $HBoxContainer/TabBar/Cytosol/ItemList
 
 # Genome
 @onready var _nucleins_list: ItemList = $HBoxContainer/TabBar/Genome/H/V/ItemList
 @onready var _nuclein_name : LineEdit = $HBoxContainer/TabBar/Genome/H/V2/H/NucleinName/LineEdit
-@onready var _nuclein_copy_number : Label = $HBoxContainer/TabBar/Genome/H/V2/H/CopyNumber
 @onready var _nuclein_sequence : TextEdit = $HBoxContainer/TabBar/Genome/H/V2/Sequence
 
 signal tab_changed(tab : int)
@@ -68,6 +68,8 @@ func _step() -> void:
 func _stats_step():
 	if !_confidence.is_editing(): #if it is being edited do not update the text
 		_confidence.text = str(snappedf(_selected_cell.confidence, 0.001))
+	_volume.text = "Volume: " + str(snappedf(_selected_cell.get_volume(), 0.01)) + " pL"
+	
 
 func _cytosol_step():
 	var cytosol_data := _selected_cell.get_cytosol_data()
@@ -96,7 +98,7 @@ func _genome_step():
 	_genome_handle_nuclein_list(genome_data)
 	_genome_handle_nuclein_data(genome_data)
 
-func _genome_handle_nuclein_list(_genome_data : Dictionary[Nuclein, int]):
+func _genome_handle_nuclein_list(_genome_data : Array[Nuclein]):
 	var genome_data = _genome_data.duplicate() #we destroy the list later on
 	#update items according to genome data
 	for n in _nucleins_list.item_count:
@@ -115,7 +117,7 @@ func _genome_handle_nuclein_list(_genome_data : Dictionary[Nuclein, int]):
 		var n = _nucleins_list.add_item(nuc.name)
 		_nucleins_list.set_item_metadata(n, nuc)
 
-func _genome_handle_nuclein_data(genome_data : Dictionary[Nuclein, int]):
+func _genome_handle_nuclein_data(genome_data : Array[Nuclein]):
 	var selected_arr = _nucleins_list.get_selected_items()
 	if selected_arr.is_empty(): return
 	var selected = _nucleins_list.get_item_metadata(selected_arr[0]) #there can only be 1 selected
@@ -123,11 +125,6 @@ func _genome_handle_nuclein_data(genome_data : Dictionary[Nuclein, int]):
 	#name
 	if !_nuclein_name.is_editing(): #if it has focus doing this messes with the typing
 		_nuclein_name.text = selected.name
-	
-	#copy number
-	var copy_number = genome_data.get(selected)
-	if !copy_number is int: return #selected no longer exists in the cell
-	_nuclein_copy_number.text = "Copy Number: {0}".format({0: copy_number})
 	
 	#sequence
 	if _nuclein_sequence.text != selected.sequence: #doing otherwise is annoying for text selection

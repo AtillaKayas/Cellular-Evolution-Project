@@ -3,7 +3,29 @@ class_name Fluid
 var volume : float
 
 var _solutes : Dictionary[Substance, float]
+
+func _init(vol : float):
+	volume = vol
+
+func section(sect_volume : float, gradient : Dictionary[String, float] = {}):
+	#in gradient the value is new_fluid_molarity/old_fluid_molarity
 	
+	sect_volume = clampf(sect_volume, 0, volume)
+	var new_fluid = Fluid.new(sect_volume)
+	if volume == 0 or sect_volume == 0:
+		return new_fluid #no point in doing anything
+	var ratio = sect_volume/volume
+	for s in _solutes:
+		var g_ratio : float = maxf(gradient.get(s.name, 1.0), 0)
+		var amount = _solutes[s]
+		var amount_to_other = minf(g_ratio*ratio*amount, amount)
+		var amount_to_self = amount-amount_to_other
+		
+		new_fluid._solutes[s] = amount_to_other
+		_solutes[s] = amount_to_self
+	
+	volume -= sect_volume
+	return new_fluid
 
 func add_substance(subs : Substance, femtomoles : float) -> float:
 	#returns the final substance amount
@@ -33,18 +55,17 @@ func set_substance(subs : Substance, femtomoles : float):
 
 func get_concentration(subs : Substance) -> float:
 	return _solutes.get(subs, 0.0)
-	
+
+func fill(solutes : Dictionary[String, float]):
+	_solutes.clear()
+	for s in solutes:
+		_solutes[Substance.fetch(s)] = solutes[s]
 
 func remove_mass(substances : Dictionary[Substance, float], multiplier : float):
 	for subs in substances:
 		var reserve = _solutes.get(subs, 0)
 		var removed_amount = substances[subs]*multiplier*Units.molecule_count_to_milimolars_in_cell_volume
 		_solutes[subs] = maxf(reserve - removed_amount, 0)
-
-func fill(solutes : Dictionary[String, float]):
-	_solutes.clear()
-	for s in solutes:
-		_solutes[Substance.fetch(s)] = solutes[s]
 
 func clear():
 	_solutes.clear()
@@ -74,13 +95,3 @@ func get_all_concentrations() -> Dictionary[Substance, String]:
 
 func display_concentration(subs : Substance) -> String:
 	return _to_concentration(get_concentration(subs))
-
-func divide() -> Fluid:
-	var donated : Dictionary[String, float]
-	for n in _solutes:
-		var new_amount = _solutes[n]/2
-		_solutes[n] = new_amount
-		donated[n.name] = new_amount
-	var sibling := Fluid.new()
-	sibling.fill(donated)
-	return sibling

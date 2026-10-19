@@ -1,5 +1,7 @@
 class_name Peptide
 
+static var DEFAULT_AMINOS : PackedStringArray = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q"]
+static var AMINO_POOL : Array[Substance]
 
 const ACT = {
 	RNA_POLYMERASE = "rPOLY",
@@ -10,7 +12,9 @@ const ACT = {
 	COMBINE = "ADD",
 	GLYCOLYSIS = "GLYSIS",
 	KINASE = "KNASE",
-	CYCLIN = "CYCLE"
+	CYCLIN = "CYCLE",
+	AQUAPORIN = "AQP",
+	AA_TRANSPORTER = "aTRANS"
 }
 
 static var DOMAIN = {
@@ -23,7 +27,9 @@ static var DOMAIN = {
 	ACT.COMBINE : ["ADD", _domain_combine, false],
 	ACT.GLYCOLYSIS : ["GLIE", _domain_gylcolysis, false],
 	ACT.KINASE : ["KINAE", _domain_kinase, false],
-	ACT.CYCLIN : ["CCND", _domain_cycle, false]
+	ACT.CYCLIN : ["CCND", _domain_cycle, false],
+	ACT.AQUAPORIN : ["FLOOD", _domain_aquaporin, false],
+	ACT.AA_TRANSPORTER: ["ACIM", _domain_aa_transporter, false],
 }
 
 
@@ -64,6 +70,8 @@ func activities(chemistry : Chemistry, amount : float) -> bool:
 			ACT.GLYCOLYSIS: _activity_glycolysis(chemistry, amount, params)
 			ACT.KINASE: _activity_kinase(chemistry, amount, params)
 			ACT.CYCLIN: _activity_cycle(chemistry, amount, params)
+			ACT.AQUAPORIN: _activity_aquaporin(chemistry, amount, params)
+			ACT.AA_TRANSPORTER: _activity_aa_transporter(chemistry, amount, params)
 	return true
 
 func find_bottleneck(subs : Dictionary[Substance, float]) -> Array:
@@ -344,11 +352,45 @@ static func _domain_cycle(_peptide, _sequence : String, i):
 	if _sequence.length()-1 <= i:
 		return []
 	
-	var rate = \
-	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+1)), 0, 15, 0.3, 0.6)
-	rate -= 0.4
+	var rate = (float(Units.capital_to_integer(_sequence.unicode_at(i+1)))-7.5)*0.000001
 	
 	return [rate]
+
+static func _domain_aquaporin(_peptide, _sequence : String, i):
+	if _sequence.length()-1 <= i:
+		return []
+	
+	var rate = \
+	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+1)), 0, 15, 0.1, 1)
+	
+	return [rate]
+
+static func _domain_aa_transporter(_peptide, _sequence : String, i):
+	#i+1: Maximum Rate
+	#i+2: Substance to symportt with
+	#i+3: Substance1 Direction and amount
+	#i+4: Substance1 Half Saturation Constant (Km)
+	#i+5: Amino Acid Half Saturation Constant (Km)
+	
+	if _sequence.length()-5 <= i:
+		return []
+	
+	var x : float = Units.capital_to_integer(_sequence.unicode_at(i+1))
+	var normalization = pow(1.59, x)
+	var maximum_rate = normalization
+	
+	var substance = _peptide._fetch_substance(_sequence[i+2])
+	if substance == null:
+		return []
+	var r = floori(Units.capital_to_integer(_sequence.unicode_at(i+3))/2.5)
+	var direction = r - 3 + floori(r/3)
+	var K_subs = \
+	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+4)), 0, 14, 0.2, 80)
+	
+	var K_amino = \
+	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+5)), 0, 14, 0.2, 80)
+	
+	return [maximum_rate, substance, direction, K_subs, K_amino]
 
 ###################
 #activities
@@ -411,9 +453,14 @@ func _activity_glycolysis(chemistry : Chemistry, amount : float, params : Array)
 
 
 func _activity_cycle(chemistry : Chemistry, amount : float, params : Array):
-	var rate = params[0]*amount/3.59381366380463/2
+	var rate = params[0]*amount/3.59381366380463
 	params[0] = rate
 	chemistry.new_operation(Operations.CYCLE, params)
+
+func _activity_aquaporin(chemistry : Chemistry, amount : float, params : Array):
+	var rate = params[0]*amount/3.59381366380463/2
+	params[0] = rate
+	chemistry.new_operation(Operations.AQUAPORIN, params)
 
 func _activity_kinase(chemistry : Chemistry, amount : float, params : Array):
 
@@ -425,6 +472,16 @@ func _activity_kinase(chemistry : Chemistry, amount : float, params : Array):
 
 func _activity_print_name(chemistry : Chemistry):
 	chemistry.new_operation(Operations.PRINT, sequence)
+
+func _activity_aa_transporter(chemistry : Chemistry, amount : float, params : Array):
+	is_membrane_bound = true
+	
+	#we divide speed by this number because this is the standard expression
+	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
+	var maximum_rate = params[0]*amount/3.59381366380463
+	params[0] = maximum_rate
+	chemistry.new_operation(Operations.AA_TRANSPORTER, params)
+	
 
 ###########
 #other private funcs

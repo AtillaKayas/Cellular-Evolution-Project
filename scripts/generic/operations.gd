@@ -3,7 +3,7 @@ class_name Operations
 #the reason i made this a seperate class is to not overcrowd Chemistry.
 #things the Operations can do are highly correlated with stuff defined in Peptides
 
-enum {PRINT, TRANSPORTER, REACTION, CYCLE}
+enum {PRINT, TRANSPORTER, REACTION, CYCLE, AQUAPORIN, AA_TRANSPORTER}
 
 const REACTIONS_SPEED := 1e-3
 
@@ -23,6 +23,8 @@ func new_operation(name : int, args : Array):
 	#if it is not one of them, we append them in _data
 	match name:
 		TRANSPORTER: _transporter(args)
+		AA_TRANSPORTER: _aa_transporter(args)
+		AQUAPORIN: _aquaporin(args)
 		_: _data.append([name, args])
 
 func tick(cytosol : Fluid, membrane : Membrane):
@@ -53,6 +55,13 @@ func _transporter(args : Array):
 		return
 	#if code reaches here it is a carrier that includes pumps and co-transporters
 	_membrane.add_carrier(maximum_rate, atp_usage, ports)
+
+func _aa_transporter(args : Array):
+	_membrane.add_aa_carrier(args[0][0], args[0][1], args[0][2], args[0][3], args[0][4])
+
+func _aquaporin(args : Array):
+	var rate = args[0][0]
+	_membrane.increase_water_permeability(rate)
 	
 func _dummy(args : Array):
 	printerr("ERROR: Unknown operation. - ", args)
@@ -93,7 +102,7 @@ func _reaction(args : Array):
 	var driving := maxf(1.0 - exp(minf(net_energy / Units.RT_F, 20.0)), -1.0)
 
 	var activation := forward_activation if driving > 0.0 else reverse_activation
-	var reaction_rate : float = maximum_rate * activation * driving * (1.0/Petri.tps) * REACTIONS_SPEED
+	var reaction_rate : float = maximum_rate * activation * driving * (4.0/Petri.tps) * REACTIONS_SPEED * Petri.acc
 	
 	var consumed : Dictionary = reactants if reaction_rate > 0.0 else products
 	var limit := INF
@@ -108,4 +117,4 @@ func _reaction(args : Array):
 
 func _cycle(args : Array):
 	var rate = args[0][0]
-	_cell.confidence += rate
+	_cell.confidence += rate * Petri.acc * 4/(Petri.tps)

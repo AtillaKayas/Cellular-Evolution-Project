@@ -27,7 +27,6 @@ func _init(cell : Cell, cytosol : Fluid, membrane : Membrane) -> void:
 	_operations = Operations.new(cell, cytosol, membrane)
 
 func tick(cytosol : Fluid, membrane : Membrane):
-	membrane.clear()
 	_operations.tick(cytosol, membrane)
 	membrane.tick()
 
