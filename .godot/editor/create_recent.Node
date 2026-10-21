@@ -1,3 +1,8 @@
+PanelContainer
+MarginContainer
+Panel
+RichTextLabel
+TabBar
 SpinBox
 TextEdit
 Label
@@ -5,11 +10,5 @@ HBoxContainer
 LineEdit
 VBoxContainer
 Control
-MarginContainer
-PanelContainer
-RichTextLabel
 HSeparator
-Panel
 ItemList
-Timer
-GridContainer

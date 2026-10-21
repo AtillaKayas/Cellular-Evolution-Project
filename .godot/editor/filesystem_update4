@@ -1,11 +1,5 @@
+res://scenes/ui/cell_data.gd
 res://scenes/ui/cell_data.tscn
 res://themes/generic.tres
 res://scripts/molecular/peptide.gd
-res://scripts/generic/operations.gd
-res://scripts/cellular/membrane.gd
-res://scenes/objects/cell.gd
-res://scenes/ui/cell_data.gd
-res://scenes/screens/petri.gd
-res://scripts/cellular/chemistry.gd
-res://scripts/molecular/substance.gd
-res://README.md
+res://scripts/cellular/genome.gd

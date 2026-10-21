@@ -49,11 +49,12 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 8
 mouse_filter = 0
-current_tab = 0
+current_tab = 2
 drag_to_rearrange_enabled = true
 deselect_enabled = true
 
 [node name="Stats" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1220988723]
+visible = false
 custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 theme_override_constants/margin_left = 6
@@ -106,7 +107,6 @@ layout_mode = 2
 select_mode = 2
 
 [node name="Genome" type="MarginContainer" parent="HBoxContainer/TabBar" unique_id=1033296580]
-visible = false
 custom_minimum_size = Vector2(0, 160)
 layout_mode = 2
 theme_override_constants/margin_left = 6
@@ -136,7 +136,6 @@ horizontal_alignment = 1
 custom_minimum_size = Vector2(97, 0)
 layout_mode = 2
 size_flags_vertical = 3
-select_mode = 2
 auto_width = true
 
 [node name="V2" type="VBoxContainer" parent="HBoxContainer/TabBar/Genome/H" unique_id=1687087273]
@@ -157,11 +156,25 @@ text = "Label: "
 layout_mode = 2
 expand_to_text_length = true
 
-[node name="Sequence" type="TextEdit" parent="HBoxContainer/TabBar/Genome/H/V2" unique_id=1489409639]
+[node name="Panel" type="PanelContainer" parent="HBoxContainer/TabBar/Genome/H/V2" unique_id=426214095]
 layout_mode = 2
 size_flags_vertical = 3
-editable = false
-wrap_mode = 1
+
+[node name="M" type="MarginContainer" parent="HBoxContainer/TabBar/Genome/H/V2/Panel" unique_id=1901876989]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/margin_left = 4
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 4
+theme_override_constants/margin_bottom = 4
+
+[node name="Sequence" type="RichTextLabel" parent="HBoxContainer/TabBar/Genome/H/V2/Panel/M" unique_id=1091528566]
+layout_mode = 2
+size_flags_vertical = 3
+focus_mode = 2
+theme_override_constants/line_separation = 0
+autowrap_mode = 1
+selection_enabled = true
 
 [node name="Timer" type="Timer" parent="." unique_id=1975659702]
 wait_time = 0.33
@@ -171,5 +184,6 @@ autostart = true
 [connection signal="text_submitted" from="HBoxContainer/TabBar/Stats/GridContainer/CellName/CellName" to="." method="_on_cell_name_text_submitted"]
 [connection signal="text_submitted" from="HBoxContainer/TabBar/Stats/GridContainer/Confidence/Confidence" to="." method="_on_confidence_text_submitted"]
 [connection signal="item_clicked" from="HBoxContainer/TabBar/Cytosol/ItemList" to="." method="_on_cytosol_item_selected"]
+[connection signal="item_selected" from="HBoxContainer/TabBar/Genome/H/V/ItemList" to="." method="_on_nuclein_selected"]
 [connection signal="text_changed" from="HBoxContainer/TabBar/Genome/H/V2/H/NucleinName/LineEdit" to="." method="_on_line_edit_text_changed"]
 [connection signal="timeout" from="Timer" to="." method="_step"]
