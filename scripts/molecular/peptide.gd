@@ -39,7 +39,9 @@ var acts : Array
 var id : int
 var definitions : Dictionary[String, Substance]
 
-var _default_name : String
+static var _gene_table : Dictionary
+var _default_gene_name_base : String
+var _activity_id : int
 
 static var _all : Dictionary[String, Peptide]
 static var _last_id : int = -1
@@ -52,6 +54,7 @@ func _init(_sequence : String) -> void:
 	
 	_find_composition()
 	_find_acts()
+	_register_gene()
 
 func activities(chemistry : Chemistry, amount : float) -> bool:
 	#go through acts, return true if acts isn't empty
@@ -89,8 +92,15 @@ func find_bottleneck(subs : Dictionary[Substance, float]) -> Array:
 			coefficient = amount_desired
 	return [bottleneck, coefficient]
 
-func get_default_name() -> String:
-	return _default_name
+func get_default_gene_name_base() -> String:
+	var cat = _gene_table[_default_gene_name_base]
+	var name := _default_gene_name_base
+	if cat["activities"].size() > 1:
+		name += " " + Units.to_alpha(cat["activities"].keys().find(_activity_id))
+	var seqs = cat["activities"][_activity_id]["sequences"]
+	if seqs.size() > 1:
+		name += str(seqs[sequence] + 1)
+	return name
 
 #########
 #static functions
@@ -107,6 +117,12 @@ static func fetch(_sequence : String):
 #private_functions
 ##############
 
+func _register_gene():
+	if acts.is_empty(): _default_gene_name_base = "d"
+	var cat = _gene_table.get_or_add(_default_gene_name_base, {"activities": {}})
+	var variations = cat["activities"].get_or_add(_activity_id, {"sequences": {}})
+	if not variations["sequences"].has(sequence):
+		variations["sequences"][sequence] = variations["sequences"].size()
 
 #################
 #domains
@@ -116,7 +132,7 @@ static func _domain_dummy(_peptide, _sequence, _i) -> Array:
 	return []
 
 static func _domain_print(_peptide, _sequence, _i) -> Array:
-	_peptide._default_name += ACT.PRINT_NAME.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.PRINT_NAME.substr(0, 2)
 	return []
 
 static func _domain_membrane_tag(_peptide : Peptide, _sequence, _i) -> Array:
@@ -133,7 +149,7 @@ static func _domain_rna_polymerase(_peptide, _sequence, i) -> Array:
 	if factor == "":
 		return []
 	else:
-		_peptide._default_name += ACT.RNA_POLYMERASE.substr(0, 2)
+		_peptide._default_gene_name_base += ACT.RNA_POLYMERASE.substr(0, 2)
 		return [factor, speed]
 
 static func _domain_define(peptide, _sequence : String, i):
@@ -197,7 +213,7 @@ static func _domain_transporter(_peptide, _sequence : String, i):
 		
 		if substance == null: continue
 		ports.append([substance, direction, half_saturation_constant])
-		_peptide._default_name += str(substance).substr(0, 2)
+		_peptide._default_gene_name_base += str(substance).substr(0, 2)
 	
 	#this part is different from _domain_combine. you can define channels without all that jizz.
 	if ports.is_empty() and atp_usage == 0:
@@ -206,7 +222,7 @@ static func _domain_transporter(_peptide, _sequence : String, i):
 			#channels do not require affinities or directions, therefore we can append it this way
 			var substance = _peptide._fetch_substance(port_data[division*3])
 			ports.append([substance])
-			_peptide._default_name += str(substance).substr(0, 2)
+			_peptide._default_gene_name_base += str(substance).substr(0, 2)
 		else:
 			#means there were no viable ports and we don't have anything to work with
 			#stuck to the end
@@ -214,7 +230,7 @@ static func _domain_transporter(_peptide, _sequence : String, i):
 	
 	
 	
-	_peptide._default_name += ACT.TRANSPORTER.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.TRANSPORTER.substr(0, 2)
 	
 	return [maximum_rate, atp_usage, ports]
 
@@ -289,7 +305,7 @@ static func _domain_combine(_peptide, _sequence : String, i):
 		_add_reaction_term(products, Substance.fetch("p"), atp_usage, 1.0)
 	
 	_remove_intermediary(products, reactants)
-	_peptide._default_name += ACT.COMBINE.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.COMBINE.substr(0, 2)
 	
 	return [maximum_rate, reactants, products, dG0_total]
 
@@ -326,7 +342,7 @@ static func _domain_gylcolysis(_peptide, _sequence : String, i):
 	const atp_generated = 3 #this is how it is done in a real cell
 	var dG0_total = delta_g + atp_generated * (30.5)
 	
-	_peptide._default_name += ACT.GLYCOLYSIS.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.GLYCOLYSIS.substr(0, 2)
 	
 	return [maximum_rate, reactants, products, dG0_total]
 
@@ -366,7 +382,7 @@ static func _domain_kinase(_peptide, _sequence : String, i):
 	var dG0_total = _calculate_delta_g(products, reactants)
 	#we don't add atp or water here as this reaction accounts for them already
 	
-	_peptide._default_name += ACT.KINASE.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.KINASE.substr(0, 2)
 	
 	return [maximum_rate, reactants, products, dG0_total]
 
@@ -376,7 +392,7 @@ static func _domain_cycle(_peptide, _sequence : String, i):
 	
 	var rate = (float(Units.capital_to_integer(_sequence.unicode_at(i+1)))-7.5)*0.000001
 	
-	_peptide._default_name += ACT.CYCLIN.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.CYCLIN.substr(0, 2)
 	
 	return [rate]
 
@@ -387,7 +403,7 @@ static func _domain_aquaporin(_peptide, _sequence : String, i):
 	var rate = \
 	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+1)), 0, 15, 0.1, 1)
 	
-	_peptide._default_name += ACT.AQUAPORIN.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.AQUAPORIN.substr(0, 2)
 	
 	
 	return [rate]
@@ -417,7 +433,7 @@ static func _domain_aa_transporter(_peptide, _sequence : String, i):
 	var K_amino = \
 	Units.log_map(Units.capital_to_integer(_sequence.unicode_at(i+5)), 0, 14, 0.2, 80)
 	
-	_peptide._default_name += ACT.AA_TRANSPORTER.substr(0, 2)
+	_peptide._default_gene_name_base += ACT.AA_TRANSPORTER.substr(0, 2)
 	
 	return [maximum_rate, substance, direction, K_subs, K_amino]
 
@@ -538,6 +554,7 @@ func _find_acts():
 			if !(parameters.is_empty() and !data[2]):
 				acts.append([act, parameters])
 				break
+	_activity_id = hash(acts)
 
 func _find_composition():
 	var result : Dictionary[Substance, float]

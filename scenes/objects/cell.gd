@@ -3,6 +3,7 @@ class_name Cell
 #nucleins
 static var default_starter_nuclein = \
 	Nuclein.PROMOTER + Nuclein.pep_to_seq("AAICLONAA") + Nuclein.TERMINATOR + \
+	Nuclein.PROMOTER + Nuclein.pep_to_seq("AAICLONAAB") + Nuclein.TERMINATOR + \
 	#K Channel
 	Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABAAK") + Nuclein.TERMINATOR + \
 	#Cl Channel

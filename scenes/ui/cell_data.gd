@@ -170,11 +170,11 @@ func _insert_peptide_data() -> void:
 		var string = result.get_string()
 		var left = Nuclein.PROMOTER.length()
 		var true_length = string.length() - (Nuclein.PROMOTER.length() + Nuclein.TERMINATOR.length())
-		var intron = string.substr(left, true_length)
+		var intron = string.substr(left + 4, true_length - 4) # we remove promoter
 		if intron == "": continue
 		var pep_name = Nuclein.seq_to_pep(intron)
 		var peptide = Peptide.fetch(pep_name)
-		genes[[result.get_start(), result.get_end()-1]] = peptide.get_default_name()
+		genes[[result.get_start(), result.get_end()-1]] = peptide.get_default_gene_name_base()
 	
 	for i in line_count:
 		var r: Vector2i = _nuclein_sequence.get_line_range(i)  # x = start, y = end

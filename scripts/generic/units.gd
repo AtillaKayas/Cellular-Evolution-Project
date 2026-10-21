@@ -78,3 +78,12 @@ static func to_scientific_notation(x : float, decimals : int = -1):
 
 static func volume_to_radius(x : float) -> float:
 	return pow(Units.cell_volume_to_in_game_volume*x*3/4/PI, 1.0/3.0)
+
+static func to_alpha(n : int) -> String: #turns number into word
+	var result := ""
+	n += 1                      # shift so 0 -> A
+	while n > 0:
+		n -= 1
+		result = char(65 + n % 26) + result
+		n /= 26
+	return result
