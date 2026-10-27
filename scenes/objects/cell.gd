@@ -3,7 +3,6 @@ class_name Cell
 #nucleins
 static var default_starter_nuclein = \
 	Nuclein.PROMOTER + Nuclein.pep_to_seq("AAICLONAA") + Nuclein.TERMINATOR + \
-	Nuclein.PROMOTER + Nuclein.pep_to_seq("AAICLONAAB") + Nuclein.TERMINATOR + \
 	#K Channel
 	Nuclein.PROMOTER + Nuclein.pep_to_seq("AOCABAAK") + Nuclein.TERMINATOR + \
 	#Cl Channel
@@ -132,3 +131,6 @@ func get_volume_difference() -> float:
 
 func save_volume():
 	_old_volume = get_volume()
+
+func get_peptide_amount(peps : Peptide) -> float:
+	return _proteome.get_peptide_amount(peps)

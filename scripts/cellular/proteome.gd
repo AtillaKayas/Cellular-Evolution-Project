@@ -13,3 +13,12 @@ static func _sort_dict_values(dict: Dictionary) -> Array:
 	peptides.sort_custom(func(a, b): return a.id < b.id)
 	
 	return peptides
+
+func get_peptide_amount(peps : Peptide) -> float:
+	var amount = _functional_peptides.get(peps)
+	if amount == null:
+		amount = _nonfunctional_peptides.get(peps)
+	if amount == null or !amount is float:
+		return 0
+	else:
+		return amount

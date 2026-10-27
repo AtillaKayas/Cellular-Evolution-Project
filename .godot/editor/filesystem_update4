@@ -1,9 +1,9 @@
+res://scenes/ui/cell_data.gd
 res://scenes/ui/cell_data.tscn
 res://themes/generic.tres
+res://scenes/ui/petri_overlay.tscn
+res://scenes/ui/peptide_data.tscn
+res://scenes/ui/peptide_data.gd
 res://scripts/molecular/peptide.gd
 res://scenes/objects/cell.gd
-res://scripts/generic/units.gd
-res://scenes/ui/cell_data.gd
-res://scenes/screens/petri.gd
-res://scenes/ui/substance_data.gd
-res://scenes/ui/petri_overlay.tscn
+res://scripts/cellular/proteome.gd

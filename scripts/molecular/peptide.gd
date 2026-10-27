@@ -18,26 +18,30 @@ const ACT = {
 }
 
 static var DOMAIN = {
-	#FUNCTION NAME      #SEQ    #DOMAIN        #Can run with no parameters?
-	ACT.RNA_POLYMERASE : ["ICLON", _domain_rna_polymerase, false],
-	ACT.PRINT_NAME : ["PLEAD", _domain_print, true],
-	ACT.MEMBRANE_TAG : ["MEMB", _domain_membrane_tag, true],
-	ACT.TRANSPORTER : ["CAB", _domain_transporter, false],
-	ACT.DEFINE : ["DEF", _domain_define, false],
-	ACT.COMBINE : ["ADD", _domain_combine, false],
-	ACT.GLYCOLYSIS : ["GLIE", _domain_gylcolysis, false],
-	ACT.KINASE : ["KINAE", _domain_kinase, false],
-	ACT.CYCLIN : ["CCND", _domain_cycle, false],
-	ACT.AQUAPORIN : ["FLOOD", _domain_aquaporin, false],
-	ACT.AA_TRANSPORTER: ["ACIM", _domain_aa_transporter, false],
+	#FUNCTION NAME      #SEQ    #DOMAIN        #Can run w/o params? #DESCRIPTION
+	ACT.RNA_POLYMERASE : ["ICLON", _domain_rna_polymerase, false, _activity_rna_polymerase, _desc_rna_polymerase],
+	ACT.PRINT_NAME : ["PLEAD", _domain_print, true, _activity_print_name],
+	ACT.MEMBRANE_TAG : ["MEMB", _domain_membrane_tag, true, _activity_dummy],
+	ACT.TRANSPORTER : ["CAB", _domain_transporter, false, _activity_transporter, _desc_transporter],
+	ACT.DEFINE : ["DEF", _domain_define, false, _activity_dummy],
+	ACT.COMBINE : ["ADD", _domain_combine, false, _activity_combine],
+	ACT.GLYCOLYSIS : ["GLIE", _domain_gylcolysis, false, _activity_glycolysis, _desc_glycolysis],
+	ACT.KINASE : ["KINAE", _domain_kinase, false, _activity_kinase],
+	ACT.CYCLIN : ["CCND", _domain_cycle, false, _activity_cycle],
+	ACT.AQUAPORIN : ["FLOOD", _domain_aquaporin, false, _activity_aquaporin],
+	ACT.AA_TRANSPORTER: ["ACIM", _domain_aa_transporter, false, _activity_aa_transporter],
 }
 
+var nick : String
 var sequence : String
 var composition : Dictionary[Substance, float]
 var is_membrane_bound : bool = false
 var acts : Array
 var id : int
 var definitions : Dictionary[String, Substance]
+
+var charge : int
+var mass : float
 
 static var _gene_table : Dictionary
 var _default_gene_name_base : String
@@ -66,16 +70,8 @@ func activities(chemistry : Chemistry, amount : float) -> bool:
 	for act in acts:
 		var activity_name = act[0]
 		var params = act[1].duplicate() #params might be edited later so we duplicate
-		match activity_name:
-			ACT.RNA_POLYMERASE: _activity_rna_polymerase(chemistry, amount, params)
-			ACT.PRINT_NAME: _activity_print_name(chemistry)
-			ACT.TRANSPORTER: _activity_transporter(chemistry, amount, params)
-			ACT.COMBINE: _activity_combine(chemistry, amount, params)
-			ACT.GLYCOLYSIS: _activity_glycolysis(chemistry, amount, params)
-			ACT.KINASE: _activity_kinase(chemistry, amount, params)
-			ACT.CYCLIN: _activity_cycle(chemistry, amount, params)
-			ACT.AQUAPORIN: _activity_aquaporin(chemistry, amount, params)
-			ACT.AA_TRANSPORTER: _activity_aa_transporter(chemistry, amount, params)
+		var activity_function = DOMAIN[activity_name][3]
+		activity_function.call(self, chemistry, amount, params)
 	return true
 
 func find_bottleneck(subs : Dictionary[Substance, float]) -> Array:
@@ -92,7 +88,8 @@ func find_bottleneck(subs : Dictionary[Substance, float]) -> Array:
 			coefficient = amount_desired
 	return [bottleneck, coefficient]
 
-func get_default_gene_name_base() -> String:
+func get_gene_name() -> String:
+	#this right here is a standardized way of generating gene names
 	var cat = _gene_table[_default_gene_name_base]
 	var name := _default_gene_name_base
 	if cat["activities"].size() > 1:
@@ -101,6 +98,27 @@ func get_default_gene_name_base() -> String:
 	if seqs.size() > 1:
 		name += str(seqs[sequence] + 1)
 	return name
+
+func get_name() -> String:
+	if nick != "": return nick
+	
+	#just return the gene name if it was not nicked
+	return get_gene_name()
+
+func get_descriptions(amount : float) -> String:
+	var result : String = ""
+	for act in acts:
+		var activity_name = act[0]
+		var params = act[1]
+		result += activity_name + "\n"
+		var act_data = DOMAIN.get(activity_name)
+		if act_data == null: continue
+		if !act_data is Array: continue
+		if act_data.size() < 5: continue
+		var desc_function = act_data[4]
+		if !desc_function is Callable: continue
+		result += desc_function.call(amount, params) + "\n\n"
+	return result
 
 #########
 #static functions
@@ -145,7 +163,7 @@ static func _domain_rna_polymerase(_peptide, _sequence, i) -> Array:
 	if i+1 < _sequence.length():
 		factor = _sequence[i+1]
 	if i+2 < _sequence.length():
-		speed = Units.reverse_sigmoid(_sequence.unicode_at(i+2))
+		speed = get_promoter_speed(_sequence.unicode_at(i+2))
 	if factor == "":
 		return []
 	else:
@@ -440,13 +458,16 @@ static func _domain_aa_transporter(_peptide, _sequence : String, i):
 ###################
 #activities
 ###################
-func _activity_rna_polymerase(chemistry : Chemistry, amount : float, params : Array):
+static func _activity_dummy(_p, _c, _a, _params):
+	return
+
+static func _activity_rna_polymerase(_peptide : Peptide, chemistry : Chemistry, amount : float, params : Array):
 	var binding_site = params[0]
 	var speed = params[1]
 	chemistry.activate_dna_binding_site(binding_site, speed*amount)
 
-func _activity_transporter(chemistry : Chemistry, amount : float, params : Array):
-	is_membrane_bound = true
+static func _activity_transporter(peptide : Peptide, chemistry : Chemistry, amount : float, params : Array):
+	peptide.is_membrane_bound = true
 	
 	#we divide speed by this number because this is the standard expression
 	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
@@ -479,7 +500,7 @@ func _activity_transporter(chemistry : Chemistry, amount : float, params : Array
 		chemistry.new_operation(Operations.REACTION, atp_degradation_params)
 	
 
-func _activity_combine(chemistry : Chemistry, amount : float, params : Array):
+static func _activity_combine(_peptide : Peptide, chemistry : Chemistry, amount : float, params : Array):
 
 	#we divide speed by this number because this is the standard expression
 	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
@@ -488,7 +509,7 @@ func _activity_combine(chemistry : Chemistry, amount : float, params : Array):
 	chemistry.new_operation(Operations.REACTION, params)
 
 
-func _activity_glycolysis(chemistry : Chemistry, amount : float, params : Array):
+static func _activity_glycolysis(_peptide : Peptide, chemistry : Chemistry, amount : float, params : Array):
 
 	#we divide speed by this number because this is the standard expression
 	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
@@ -497,17 +518,17 @@ func _activity_glycolysis(chemistry : Chemistry, amount : float, params : Array)
 	chemistry.new_operation(Operations.REACTION, params)
 
 
-func _activity_cycle(chemistry : Chemistry, amount : float, params : Array):
+static func _activity_cycle(_p, chemistry : Chemistry, amount : float, params : Array):
 	var rate = params[0]*amount/3.59381366380463
 	params[0] = rate
 	chemistry.new_operation(Operations.CYCLE, params)
 
-func _activity_aquaporin(chemistry : Chemistry, amount : float, params : Array):
+static func _activity_aquaporin(_p, chemistry : Chemistry, amount : float, params : Array):
 	var rate = params[0]*amount/3.59381366380463/2
 	params[0] = rate
 	chemistry.new_operation(Operations.AQUAPORIN, params)
 
-func _activity_kinase(chemistry : Chemistry, amount : float, params : Array):
+static func _activity_kinase(_p, chemistry : Chemistry, amount : float, params : Array):
 
 	#we divide speed by this number because this is the standard expression
 	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
@@ -515,22 +536,71 @@ func _activity_kinase(chemistry : Chemistry, amount : float, params : Array):
 	params[0] = maximum_rate
 	chemistry.new_operation(Operations.REACTION, params)
 
-func _activity_print_name(chemistry : Chemistry):
-	chemistry.new_operation(Operations.PRINT, sequence)
+static func _activity_print_name(peptide : Peptide, chemistry : Chemistry, amount : float, params : Array):
+	chemistry.new_operation(Operations.PRINT, peptide.sequence)
 
-func _activity_aa_transporter(chemistry : Chemistry, amount : float, params : Array):
-	is_membrane_bound = true
+static func _activity_aa_transporter(peptide : Peptide, chemistry : Chemistry, amount : float, params : Array):
+	peptide.is_membrane_bound = true
 	
 	#we divide speed by this number because this is the standard expression
 	#of a peptide in a given cell (Translation speed F from an A speed polymerase)
 	var maximum_rate = params[0]*amount/3.59381366380463
 	params[0] = maximum_rate
 	chemistry.new_operation(Operations.AA_TRANSPORTER, params)
+
+#############
+##descriptions
+##############
+
+static func _desc_rna_polymerase(amount : float, params : Array) -> String:
+	var binding_site = params[0]
+	var speed = params[1]
+	var sxa = params[1]*amount
 	
+	return "Binding Site: {0}\nSpeed: {1}\n(Speed*Amount): {2}".format([
+		binding_site, speed, sxa
+	])
+
+static func _desc_transporter(amount : float, params : Array) -> String:
+	var maximum_rate = snappedf(params[0]*amount, 0.1)
+	var atp_usage = params[1]
+	var ports = params[2]
+
+	var port_data : String = ""
+	
+	var i = 0
+	for port in ports:
+		i += 1
+		var substance_name = port[0]
+		if port.size() > 1:
+			var stoi = port[1]
+			var km = snappedf(port[2], 0.1)
+			port_data += "Substance{0}: {1}\nStoichiometry: {2}, Km: {3}\n\n".format([
+				i, substance_name, stoi, km
+			])
+		else:
+			port_data += "Channel: {0}".format([
+				substance_name
+			])
+	
+	return "Total Max Rate: {0}\n ATP Usage: {1}\n\nPorts;\n{2}".format([
+		maximum_rate, atp_usage, port_data
+	])
+
+static func _desc_glycolysis(amount : float, params : Array) -> String:
+	var maximum_rate = snappedf(params[0], 0.01)
+	var total_max_rate = snappedf(maximum_rate*amount, 0.01)
+	
+	return "Max Rate: {0}\nTotal Max Rate: {1}".format([
+		maximum_rate, total_max_rate,
+	])
 
 ###########
 #other private funcs
 ##########
+
+static func get_promoter_speed(character : int):
+	return Units.reverse_sigmoid(character)
 
 func _find_acts():
 	acts.clear()
@@ -562,6 +632,8 @@ func _find_composition():
 		var substance := Substance.fetch(n)
 		var amount : float = result.get_or_add(substance, 0.0)
 		result[substance] = amount + 1
+		charge += substance.charge
+		mass += substance.mass
 	composition = result
 
 func _to_string() -> String:

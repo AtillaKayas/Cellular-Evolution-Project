@@ -79,6 +79,9 @@ texture_margin_left = 3.0
 texture_margin_top = 3.0
 texture_margin_right = 3.0
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_jsys6"]
+bg_color = Color(0, 0, 0, 1)
+
 [resource]
 ItemList/styles/cursor = SubResource("StyleBoxEmpty_jsys6")
 ItemList/styles/cursor_unfocused = SubResource("StyleBoxEmpty_c5q1l")
@@ -95,3 +98,4 @@ TabContainer/styles/tab_disabled = SubResource("StyleBoxTexture_41mth")
 TabContainer/styles/tab_hovered = SubResource("StyleBoxTexture_c5q1l")
 TabContainer/styles/tab_selected = SubResource("StyleBoxTexture_cb6id")
 TabContainer/styles/tab_unselected = SubResource("StyleBoxTexture_yehq1")
+TooltipPanel/styles/panel = SubResource("StyleBoxFlat_jsys6")

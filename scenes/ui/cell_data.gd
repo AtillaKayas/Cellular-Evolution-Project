@@ -1,5 +1,10 @@
 extends MarginContainer
 
+enum {PROMOTER, PEPTIDE, TERMINATOR}
+
+const _terminator_color = Color(0.397, 0.0, 0.0, 1.0)
+const _promoter_color = Color(0.651, 0.616, 0.9, 1.0)
+
 enum {STATS, CYTOSOL, GENOME}
 
 var _selected_cell : Cell
@@ -31,6 +36,10 @@ var _plasmid_box = preload("res://sprites/ui/plasmid/box.png")
 signal tab_changed(tab : int)
 signal substance_data_requested(cell : Cell, subs : Substance)
 signal substance_data_unselected
+
+signal peptide_data_requested(cell : Cell, peptide : Peptide)
+signal promoter_data_requested(cell : Cell, promoter : String)
+signal terminator_data_requested(cell : Cell, terminator : String)
 
 
 
@@ -169,12 +178,34 @@ func _insert_peptide_data() -> void:
 	for result in results:
 		var string = result.get_string()
 		var left = Nuclein.PROMOTER.length()
+		var right = Nuclein.TERMINATOR.length()
 		var true_length = string.length() - (Nuclein.PROMOTER.length() + Nuclein.TERMINATOR.length())
 		var intron = string.substr(left + 4, true_length - 4) # we remove promoter
+		var promoter = Nuclein.seq_to_pep(string.substr(left, 4))
+		var terminator = string.substr(string.length()-right, right)
+		var promoter_binding = promoter[0]
+		var promoter_speed = Peptide.get_promoter_speed(promoter.unicode_at(1))
 		if intron == "": continue
 		var pep_name = Nuclein.seq_to_pep(intron)
 		var peptide = Peptide.fetch(pep_name)
-		genes[[result.get_start(), result.get_end()-1]] = peptide.get_default_gene_name_base()
+		genes[[result.get_start(), result.get_start() + left + 3]] = [
+			"p" + promoter,
+			_promoter_color,
+			"Binding Site: " + promoter_binding + " Speed: " + str(snappedf(promoter_speed, 0.01)),
+			[PROMOTER, promoter]
+		]
+		genes[[result.get_start() + left + 4, result.get_end()-Nuclein.TERMINATOR.length()-1]] = [
+			peptide.get_gene_name(),
+			Color(1.0, 1.0, 1.0, 1.0),
+			pep_name,
+			[PEPTIDE, peptide]
+		]
+		genes[[result.get_start() + left + true_length, result.get_end()-1]] = [
+			"T",
+			_terminator_color,
+			"",
+			[TERMINATOR, terminator]
+		]
 	
 	for i in line_count:
 		var r: Vector2i = _nuclein_sequence.get_line_range(i)  # x = start, y = end
@@ -190,10 +221,10 @@ func _insert_peptide_data() -> void:
 		
 		_nuclein_sequence.newline()
 
-func _add_boxes(count : int) -> void:
+func _add_boxes(count : int, color : Color) -> void:
 	for i in count:
 		#_nuclein_sequence.add_text("=")
-		_nuclein_sequence.add_image(_plasmid_box, _font_width, _font_height, _gene_color)
+		_nuclein_sequence.add_image(_plasmid_box, _font_width, _font_height, color)
 
 func _fit_label(label : String, width : int) -> String:
 	if width <= 0:
@@ -204,7 +235,12 @@ func _fit_label(label : String, width : int) -> String:
 	var left := pad / 2
 	return " ".repeat(left) + label + " ".repeat(pad - left)
 
-func _add_gene_segment(length : int, finishes : bool, label : String) -> void:
+func _add_gene_segment(length : int, finishes : bool, data : Array) -> void:
+	var label : String = data[0]
+	var color : Color = data[1]
+	var hover : String = data[2]
+	var click : Array = data[3]
+	
 	var body := length - 1 if finishes else length
 	var text := _fit_label(label, body)          # padded to exactly `body` characters
 	var trimmed := text.strip_edges()
@@ -212,25 +248,36 @@ func _add_gene_segment(length : int, finishes : bool, label : String) -> void:
 	var label_len := trimmed.length()
 
 	# solid blocks before the label
-	_nuclein_sequence.push_color(_gene_color)
-	_add_boxes(lead)
+	_nuclein_sequence.push_color(color)
+	_nuclein_sequence.push_hint(hover)
+	_nuclein_sequence.push_meta(click)
+	_add_boxes(lead, color)
+	_nuclein_sequence.pop()
+	_nuclein_sequence.pop()
 	_nuclein_sequence.pop()
 
 	# label span: filled cells with the letters cut out in the background color
 	if label_len > 0:
-		_nuclein_sequence.push_bgcolor(_gene_color)
+		_nuclein_sequence.push_bgcolor(color)
 		_nuclein_sequence.push_color(_gene_background_color)
+		_nuclein_sequence.push_hint(hover)
+		_nuclein_sequence.push_meta(click)
 		_nuclein_sequence.add_text(trimmed)
+		_nuclein_sequence.pop()
+		_nuclein_sequence.pop()
 		_nuclein_sequence.pop()
 		_nuclein_sequence.pop()
 
 	# solid blocks after the label
-	_nuclein_sequence.push_color(_gene_color)
-	_add_boxes(body - lead - label_len)
+	_nuclein_sequence.push_color(color)
+	_nuclein_sequence.push_hint(hover)
+	_nuclein_sequence.push_meta(click)
+	_add_boxes(body - lead - label_len, color)
 	if finishes:
-		_nuclein_sequence.add_image(_plasmid_triangle, _font_width, _font_height, _gene_color)
+		_nuclein_sequence.add_image(_plasmid_triangle, _font_width, _font_height, color)
 	_nuclein_sequence.pop()
-
+	_nuclein_sequence.pop()
+	_nuclein_sequence.pop()
 func _check_genes_in_line(genes : Dictionary, line_start : int, line_end : int) -> void:
 	var cursor := line_start
 	for gene_range in genes.keys():
@@ -249,10 +296,18 @@ func _check_genes_in_line(genes : Dictionary, line_start : int, line_end : int) 
 		
 		_nuclein_sequence.add_text(" ".repeat(from - cursor))
 		var starts_here := g_start >= line_start
-		_add_gene_segment(to - from + 1, finishes_here, genes[gene_range] if starts_here else "")
+		_add_gene_segment(to - from + 1, finishes_here, genes[gene_range] if starts_here else ["", genes[gene_range][1], genes[gene_range][2], genes[gene_range][3]])
 		if finishes_here:
 			genes.erase(gene_range)
 		
 		cursor = to + 1
 		if cursor >= line_end:
 			break
+
+
+func _on_gene_box_clicked(meta: Variant) -> void:
+	match meta[0]:
+		PROMOTER: promoter_data_requested.emit(_selected_cell, meta[1])
+		PEPTIDE: peptide_data_requested.emit(_selected_cell, meta[1])
+		TERMINATOR: terminator_data_requested.emit(_selected_cell, meta[1])
+		_: terminator_data_requested.emit(_selected_cell, Nuclein.TERMINATOR)

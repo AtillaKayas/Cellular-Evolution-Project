@@ -186,4 +186,5 @@ autostart = true
 [connection signal="item_clicked" from="HBoxContainer/TabBar/Cytosol/ItemList" to="." method="_on_cytosol_item_selected"]
 [connection signal="item_selected" from="HBoxContainer/TabBar/Genome/H/V/ItemList" to="." method="_on_nuclein_selected"]
 [connection signal="text_changed" from="HBoxContainer/TabBar/Genome/H/V2/H/NucleinName/LineEdit" to="." method="_on_line_edit_text_changed"]
+[connection signal="meta_clicked" from="HBoxContainer/TabBar/Genome/H/V2/Panel/M/Sequence" to="." method="_on_gene_box_clicked"]
 [connection signal="timeout" from="Timer" to="." method="_step"]
